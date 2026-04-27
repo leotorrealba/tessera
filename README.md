@@ -4,7 +4,7 @@
 
 The name comes from Latin *tessera*: a small mosaic tile, and the wooden tile Roman soldiers carried with their unit's assignment and orders. The metaphor is literal — every task is a tessera, and the project is the mosaic that emerges when many of them are placed in coordination.
 
-> **Status: pre-alpha.** Spec is evolving weekly. Breaking changes are expected through v0.1.
+> **Status: v0.0.1 (pre-alpha).** Concrete schemas and conformance fixtures shipped. Spec still evolving weekly. Breaking changes expected through v0.1. Implementations should pin to a specific v0.0.x and watch the changelog.
 
 ## What Tessera defines
 
@@ -37,8 +37,10 @@ A `conformance/` directory will hold paired JSON request/response fixtures that 
 
 ## Roadmap
 
-- **v0.0.1** (current week) — three verbs (`task.create`, `task.get`, `task.update_status`), JSON Schemas for the core resources, three conformance fixtures.
-- **v0.1.0** (week 5) — stable schemas, deprecation policy, migration guide template.
+- **v0.0.0** ✅ shipped — bootstrap repo, license, founding-story README.
+- **v0.0.1** ✅ shipped — three verbs (`task.create`, `task.get`, `task.update_status`), JSON Schemas for the six core resources, three happy-path conformance fixtures. See [`SPEC.md`](./SPEC.md) and [`schemas/`](./schemas/).
+- **v0.0.x** (next 4 weeks) — concurrency conflict fixtures, operation_id reuse fixtures, agent_context truncation, multi-actor narratives.
+- **v0.1.0** (week 5 of Sprino's build, ~1 month out) — stable schemas, semver-bound deprecation policy, migration guide template, full conformance suite.
 - **v0.2.0** — comments, labels, search, webhooks, sprints (re-evaluated as universal vs implementation-specific).
 - **v1.0.0** — when there is a second implementation.
 

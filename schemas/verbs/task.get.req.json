@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.1/verbs/task.get.req.json",
+  "title": "task.get — Request",
+  "description": "Fetch a task with its agent_context. Read-only; no operation_id required.",
+  "type": "object",
+  "required": ["task_id"],
+  "properties": {
+    "task_id": { "type": "string", "format": "uuid" }
+  },
+  "additionalProperties": false
+}

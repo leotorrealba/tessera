@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.1/resources/event.json",
+  "title": "Event",
+  "description": "Append-only record of a state change. Authoritative source of truth for actor activity. Materialized fields on Task (status, assignee_id) are projections of these events. Events MUST NOT be mutated or deleted.",
+  "type": "object",
+  "required": ["id", "task_id", "actor_id", "kind", "operation_id", "created_at"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "task_id": { "type": "string", "format": "uuid" },
+    "actor_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The actor who performed the action. For agents this is the agent's actor id, NOT parent_actor_id."
+    },
+    "kind": {
+      "enum": ["created", "status_changed", "assigned", "context_updated", "commented"],
+      "description": "Event taxonomy is FIXED in v0.x. New event kinds require a protocol minor-version bump."
+    },
+    "payload": {
+      "type": "object",
+      "description": "Event-specific payload. Conventions: created → {title, status}; status_changed → {from, to}; assigned → {from, to} (actor_ids or nulls); context_updated → free-form context delta; commented → {body}. Implementations MAY include additional fields.",
+      "additionalProperties": true
+    },
+    "operation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The idempotency key the verb call used. The same operation_id never produces two events."
+    },
+    "created_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

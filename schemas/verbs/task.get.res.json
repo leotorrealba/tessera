@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.1/verbs/task.get.res.json",
+  "title": "task.get — Response",
+  "description": "200 OK with task + agent_context. 404 Not Found if task_id is unknown to the implementation. 403 Forbidden if the actor lacks read permission on the task's project.",
+  "type": "object",
+  "required": ["task", "agent_context"],
+  "properties": {
+    "task": { "$ref": "../resources/task.json" },
+    "agent_context": { "$ref": "../resources/agent-context.json" }
+  },
+  "additionalProperties": false
+}

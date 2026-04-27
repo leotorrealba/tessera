@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.1/resources/project.json",
+  "title": "Project",
+  "description": "A scope boundary. Tasks live in projects. Projects can be auto-detected from a repo's git root, but the protocol does not mandate any specific detection strategy.",
+  "type": "object",
+  "required": ["id", "slug", "display_name", "created_at"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Stable, URL-safe identifier. Lowercase alphanumerics and hyphens; cannot start or end with hyphen."
+    },
+    "display_name": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "repo_path": {
+      "type": ["string", "null"],
+      "description": "Canonical local path of the repo root, used for auto-detect (e.g. via 'git rev-parse --show-toplevel'). Optional — projects may exist without a repo."
+    },
+    "created_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

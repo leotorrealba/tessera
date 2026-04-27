@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.1/resources/task.json",
+  "title": "Task",
+  "description": "A unit of work. Status is a materialized projection of the latest status_changed event for this task. Implementations MAY keep mutable rows for read performance, but the event log is the source of truth.",
+  "type": "object",
+  "required": ["id", "project_id", "title", "status", "created_by", "version", "created_at", "updated_at"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "project_id": { "type": "string", "format": "uuid" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 280 },
+    "description": {
+      "type": "string",
+      "maxLength": 16384,
+      "description": "Free-form description. Implementations may render as Markdown but the protocol treats it as plain text."
+    },
+    "status": {
+      "enum": ["todo", "doing", "done", "blocked"],
+      "description": "Materialized from the latest status_changed event. New tasks start as 'todo'."
+    },
+    "assignee_id": {
+      "type": ["string", "null"],
+      "format": "uuid",
+      "description": "Reference to an actor (human or agent). NULL means unassigned."
+    },
+    "created_by": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Actor who created the task. Set on task.create, never mutates."
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Optimistic concurrency token. Increments on every mutation. Mutating verbs require if_match=<version> and return 409 Conflict on mismatch with the server's current task body."
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

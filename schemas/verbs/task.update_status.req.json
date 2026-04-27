@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.1/verbs/task.update_status.req.json",
+  "title": "task.update_status — Request",
+  "description": "Mutate a task's status. Idempotent via operation_id; concurrency-safe via if_match. Writes a 'status_changed' event before updating the materialized status field.",
+  "type": "object",
+  "required": ["operation_id", "task_id", "status", "if_match"],
+  "properties": {
+    "operation_id": { "type": "string", "format": "uuid" },
+    "task_id": { "type": "string", "format": "uuid" },
+    "status": { "enum": ["todo", "doing", "done", "blocked"] },
+    "if_match": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The client's known task version. If it does not match the server's current version, the server returns 409 Conflict with the server's current task body."
+    }
+  },
+  "additionalProperties": false
+}

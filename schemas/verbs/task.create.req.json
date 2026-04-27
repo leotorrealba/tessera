@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.1/verbs/task.create.req.json",
+  "title": "task.create — Request",
+  "description": "Create a task in a project. Idempotent via operation_id. The server determines created_by from the authenticated actor; clients MUST NOT supply it.",
+  "type": "object",
+  "required": ["operation_id", "project_id", "title"],
+  "properties": {
+    "operation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUIDv7 (time-ordered). Same operation_id replays the cached response. Same operation_id with a different request body returns 409 Conflict."
+    },
+    "project_id": { "type": "string", "format": "uuid" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 280 },
+    "description": { "type": "string", "maxLength": 16384 },
+    "assignee_id": {
+      "type": ["string", "null"],
+      "format": "uuid",
+      "description": "Optional initial assignee. NULL or omitted means unassigned."
+    }
+  },
+  "additionalProperties": false
+}

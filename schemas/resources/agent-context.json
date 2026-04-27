@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.1/resources/agent-context.json",
+  "title": "AgentContext",
+  "description": "Structured context returned with task.get and task.create responses so AI agents start with full state instead of re-explaining. Caps at 32KB serialized; over-cap responses set truncated:true and return next_page_tokens for follow-up calls to related_tasks.list and events.list.",
+  "type": "object",
+  "required": ["related_tasks", "recent_events", "repo_refs", "truncated"],
+  "properties": {
+    "related_tasks": {
+      "type": "array",
+      "items": { "$ref": "task.json" },
+      "description": "Tasks blocking, blocked-by, or otherwise related. Not exhaustive; pagination via next_page_tokens.related_tasks. Capped to fit the 32KB envelope."
+    },
+    "recent_events": {
+      "type": "array",
+      "items": { "$ref": "event.json" },
+      "description": "Most-recent events on this task and adjacent tasks, newest first. Pagination via next_page_tokens.recent_events. Capped to fit the 32KB envelope."
+    },
+    "repo_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kind", "ref"],
+        "properties": {
+          "kind": { "enum": ["commit", "branch", "pr", "file", "issue"] },
+          "ref": {
+            "type": "string",
+            "description": "Implementation-specific reference. For commits: SHA. For branches: branch name. For PRs/issues: number or full URL. For files: repo-relative path."
+          },
+          "url": { "type": "string", "format": "uri" }
+        },
+        "additionalProperties": false
+      },
+      "description": "Repo references attached to this task. Empty until populated via task.update_context (out of scope for v0.0.1)."
+    },
+    "truncated": {
+      "type": "boolean",
+      "description": "True if any field was cut to fit the 32KB cap. Clients seeing truncated=true SHOULD call related_tasks.list / events.list with next_page_tokens for full data."
+    },
+    "next_page_tokens": {
+      "type": "object",
+      "description": "Opaque pagination cursors. Only present when truncated=true.",
+      "properties": {
+        "related_tasks": { "type": ["string", "null"] },
+        "recent_events": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

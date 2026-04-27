@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.1/resources/operation.json",
+  "title": "Operation",
+  "description": "Server-side idempotency dedup record. Stored for 30 days minimum (implementations MAY retain longer). Client supplies operation_id (UUIDv7) on every mutating verb. Server caches the response and replays it for any retry within retention.",
+  "type": "object",
+  "required": ["operation_id", "actor_id", "request_hash", "created_at", "expires_at"],
+  "properties": {
+    "operation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUIDv7 (time-ordered) supplied by the client. Implementations MUST NOT generate operation_ids server-side."
+    },
+    "actor_id": { "type": "string", "format": "uuid" },
+    "request_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 of the canonical JSON form of the request body (UTF-8, sorted keys, no whitespace). Used to detect operation_id reuse with different payloads, which MUST return 409 Conflict."
+    },
+    "response_body": {
+      "type": "object",
+      "description": "Cached response body, returned verbatim on retry. Implementations MAY omit this field from external representations of Operation; it is shown here for clarity.",
+      "additionalProperties": true
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Earliest time the server may purge this operation. After expiry, retries return 410 Gone."
+    }
+  },
+  "additionalProperties": false
+}

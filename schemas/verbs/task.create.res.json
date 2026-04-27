@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.1/verbs/task.create.res.json",
+  "title": "task.create — Response",
+  "description": "201 Created on first call. 200 OK on idempotent replay (same operation_id + same request_hash). 409 Conflict on operation_id reuse with different payload (response body in 409 case is the ORIGINAL cached response, not a fresh one). 410 Gone if operation_id has expired past retention.",
+  "type": "object",
+  "required": ["task", "agent_context", "event"],
+  "properties": {
+    "task": { "$ref": "../resources/task.json" },
+    "agent_context": { "$ref": "../resources/agent-context.json" },
+    "event": {
+      "$ref": "../resources/event.json",
+      "description": "The 'created' event written for this mutation."
+    }
+  },
+  "additionalProperties": false
+}

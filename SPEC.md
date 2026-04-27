@@ -1,47 +1,84 @@
 # Tessera v0.0.1
 
-**Status:** pre-alpha. Schemas TBD week 1. Breaking changes expected through v0.1.
+**Status:** v0.0.1 — first concrete schemas + fixtures shipped. Breaking changes still expected through v0.1. Implementations should pin to a specific v0.0.x and follow upgrade notes.
 
-## Verbs (week 1 deliverable)
+## TL;DR for implementers
 
-- `task.create` — create a task in a project. Takes `operation_id` (UUIDv7, idempotency), `project_id`, `title`, optional `description` and `assignee_id`. Returns the created task plus an `agent_context` block.
-- `task.get` — fetch a task with its agent_context (related tasks, recent events, repo refs). Capped at 32KB serialized; pagination flags returned when truncated.
-- `task.update_status` — mutate a task's status. Takes `if_match: <version>` for optimistic concurrency; returns 409 on version mismatch with the current task body.
+1. Install your DB schema for the five core resources (`actor`, `project`, `task`, `event`, `operation`). The shapes are defined in [`schemas/resources/`](./schemas/resources/).
+2. Implement the three v0.0.1 verbs (`task.create`, `task.get`, `task.update_status`). Request/response shapes are in [`schemas/verbs/`](./schemas/verbs/).
+3. Make your implementation pass [`conformance/fixtures/`](./conformance/fixtures/). The fixtures form a coherent create → get → update_status narrative.
 
-## Core resources (preview)
+## Core resources
 
-```
-actor      (id, kind 'human|agent', display_name, agent_runtime, parent_actor_id, created_at)
-project    (id, slug, display_name, repo_path, created_at)
-task       (id, project_id, title, description, status 'todo|doing|done|blocked',
-            assignee_id, created_by, version, created_at, updated_at)
-event      (id, task_id, actor_id, kind, payload, operation_id, created_at)  -- APPEND-ONLY
-operation  (operation_id pk, actor_id, request_hash, response_body, created_at, expires_at)
-```
+Five resources, five JSON Schemas. All schemas use JSON Schema 2020-12.
 
-## Idempotency rules (v0.0.1)
+| Resource | Schema | Purpose |
+| --- | --- | --- |
+| **Actor** | [`schemas/resources/actor.json`](./schemas/resources/actor.json) | Humans and agents as first-class participants. `kind` discriminates at the schema level — agents are NOT users-with-a-flag. |
+| **Project** | [`schemas/resources/project.json`](./schemas/resources/project.json) | Scope boundary. Tasks live in projects. |
+| **Task** | [`schemas/resources/task.json`](./schemas/resources/task.json) | Unit of work. `status` is a materialized projection of the latest `status_changed` event. |
+| **Event** | [`schemas/resources/event.json`](./schemas/resources/event.json) | Append-only authoritative state changes. Source of truth. MUST NOT be mutated or deleted. |
+| **Operation** | [`schemas/resources/operation.json`](./schemas/resources/operation.json) | Server-side idempotency dedup record. 30-day minimum retention. |
+| **AgentContext** | [`schemas/resources/agent-context.json`](./schemas/resources/agent-context.json) | Structured response field on `task.create` and `task.get`. Caps at 32KB; over-cap responses set `truncated:true` with `next_page_tokens`. |
 
-- `operation_id` is UUIDv7 supplied by the client on every mutating verb.
-- 30-day retention. After expiry, replay returns 410 Gone.
-- Same `operation_id` + same `request_hash` → cached response.
-- Same `operation_id` + different `request_hash` → 409 Conflict with the original payload.
+## Verbs (v0.0.1)
 
-## Optimistic concurrency
+| Verb | Request | Response | Idempotent? |
+| --- | --- | --- | --- |
+| `task.create` | [req](./schemas/verbs/task.create.req.json) | [res](./schemas/verbs/task.create.res.json) | Yes (operation_id) |
+| `task.get` | [req](./schemas/verbs/task.get.req.json) | [res](./schemas/verbs/task.get.res.json) | N/A (read-only) |
+| `task.update_status` | [req](./schemas/verbs/task.update_status.req.json) | [res](./schemas/verbs/task.update_status.res.json) | Yes (operation_id) + concurrency-safe (if_match) |
 
-Every mutating verb takes `if_match: <version>`. On mismatch → 409 Conflict with the current task body. Last-write-wins is a footgun for AI agents that don't pause to check state.
+## Idempotency rules (`operation_id`)
+
+- **Format:** UUIDv7 supplied by the client. Implementations MUST NOT generate operation_ids server-side.
+- **Retention:** 30 days minimum. After expiry, retries return `410 Gone`.
+- **Replay semantics:**
+  - Same `operation_id` + same `request_hash` (SHA-256 of canonical JSON) → return the cached response verbatim.
+  - Same `operation_id` + different `request_hash` → return `409 Conflict` with the original cached payload.
+- **Server cleanup:** Implementations SHOULD purge expired operations on a daily cadence. The protocol does not mandate a specific schedule.
+
+## Optimistic concurrency (`version`)
+
+- Every mutating verb takes `if_match: <version>`.
+- On match: server writes the event, increments the version, returns the new task and event with status `200 OK`.
+- On mismatch: server returns `409 Conflict` with the SERVER'S current task body (no new event written, no version increment).
+- Reasoning: AI agents tend not to pause to check state. Last-write-wins is a footgun.
 
 ## Event log semantics
 
-Events are append-only and authoritative. Materialized state (`tasks.status`, `tasks.assignee_id`) is recomputable by replaying events. Implementations MAY keep mutable rows for read performance, but events are the source of truth.
+- Events are append-only and authoritative.
+- Mutating operations write the event BEFORE updating materialized state, in the same transaction.
+- Materialized state (`tasks.status`, `tasks.assignee_id`) is recomputable by replaying events in `created_at` order. Implementations MAY keep mutable rows for read performance, but events remain the source of truth.
+- Implementations MAY expose a future `events.list` verb (out of scope for v0.0.1) that lets agents query event history without polling.
 
-## JSON Schemas
+## Transport-agnostic
 
-Coming in week 1 of v0.0.1. Will live in `schemas/`. Each verb will have a request schema and a response schema.
+The protocol does not mandate a transport. Implementations MAY expose verbs over:
+- **HTTP REST** — e.g. `POST /api/tasks` (create), `GET /api/tasks/:id` (get), `PATCH /api/tasks/:id/status` (update).
+- **MCP** — e.g. `sprino.task.create` as an MCP tool over stdio or HTTP.
+- **gRPC, WebSocket, anything else** — as long as the request/response shapes match.
+
+The reference implementation ([Sprino](https://github.com/leotorrealba/sprino)) exposes both HTTP and MCP-over-HTTP from the same Hono process.
 
 ## Conformance
 
-Fixtures land in `conformance/` in v0.0.1. Format: paired `<verb>-<scenario>.req.json` and `<verb>-<scenario>.res.json` files. An implementation passes Tessera if it returns responses that validate against the response schemas for every fixture's request.
+A runnable conformance suite lives in [`conformance/`](./conformance/). See [`conformance/README.md`](./conformance/README.md) for how to run it against your implementation.
+
+## Out of scope for v0.0.1 (planned for v0.0.2 → v0.1)
+
+- Concurrency conflict scenarios (multiple writers).
+- Operation_id reuse with mismatched payload (409 case).
+- Operation expiry (410 Gone).
+- 32KB agent_context truncation + pagination.
+- Multi-actor narratives.
+- Event log replay verbs (`events.list`).
+- Project lifecycle verbs (`project.create`, `project.list`).
+- Actor lifecycle verbs (`actor.register`, `actor.list`).
+- Comments, labels, search, sprints (re-evaluated as universal vs implementation-specific in v0.2 design).
+
+These will graduate into v0.1 once stable.
 
 ## Reference implementation
 
-[Sprino](https://github.com/leotorrealba/sprino).
+[Sprino](https://github.com/leotorrealba/sprino) — TypeScript + Hono + Drizzle + Postgres + MCP SDK. Self-hostable. Single-tenant for v0.x; multi-tenant cloud product post-graduation.

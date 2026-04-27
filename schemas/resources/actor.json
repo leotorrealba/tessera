@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.1/resources/actor.json",
+  "title": "Actor",
+  "description": "A first-class participant in Tessera. Either a human or an AI agent. The schema-level distinction (kind) is one of the core Tessera ideas: agents are not users-with-a-flag.",
+  "type": "object",
+  "required": ["id", "kind", "display_name", "created_at"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Stable across sessions. UUIDv7 recommended for time-ordering."
+    },
+    "kind": {
+      "enum": ["human", "agent"],
+      "description": "Schema-level distinction. Humans and agents have different lifecycle semantics."
+    },
+    "display_name": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "agent_runtime": {
+      "type": ["string", "null"],
+      "description": "For agents: identifies the runtime, e.g. 'claude-code', 'cursor', 'devin', 'manus'. NULL for humans."
+    },
+    "parent_actor_id": {
+      "type": ["string", "null"],
+      "format": "uuid",
+      "description": "For agents: the human actor who spawned this agent session. NULL for humans. Lets clients trace agent activity back to a responsible human."
+    },
+    "created_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}
