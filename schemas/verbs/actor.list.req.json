@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/actor.list.req.json",
+  "title": "actor.list — Request",
+  "description": "List actors visible to the authenticated caller. Read-only (no operation_id). Optional `kind` filter narrows the result set.",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "enum": ["human", "agent"],
+      "description": "Optional filter. When omitted, all visible actors are returned."
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,13 @@
+{
+  "_meta": {
+    "expected_behavior": "v0.1.2 restricts `kind` to `human` only. Agent registration is intentionally deferred until a capabilities/spawn model is defined. Implementation MUST reject with 400 Bad Request before performing any state mutation."
+  },
+  "_error": {
+    "status": 400,
+    "code": "validation_error",
+    "details": {
+      "field": "kind",
+      "reason": "Only `human` is accepted in v0.1.2."
+    }
+  }
+}

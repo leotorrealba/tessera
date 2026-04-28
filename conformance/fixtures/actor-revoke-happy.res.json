@@ -1,0 +1,14 @@
+{
+  "_meta": {
+    "preconditions": "actor-register-happy already executed: actor 018c3e7a-0001-7000-8000-000000000010 exists with an active credential. The caller (an authenticated holder of an active credential — typically an admin human) is NOT this actor; revoking yourself is allowed but irrelevant to this fixture.",
+    "expected_behavior": "Returns the actor whose credential was invalidated. The response carries no token field — the actor resource does not contain plaintext credentials."
+  },
+  "actor": {
+    "id": "018c3e7a-0001-7000-8000-000000000010",
+    "kind": "human",
+    "display_name": "Ada Lovelace",
+    "agent_runtime": null,
+    "parent_actor_id": null,
+    "created_at": "2026-04-29T10:00:00Z"
+  }
+}

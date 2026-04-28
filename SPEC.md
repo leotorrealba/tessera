@@ -1,6 +1,6 @@
-# Tessera v0.1.1
+# Tessera v0.1.2
 
-**Status:** v0.1.1 — schemas stabilized (v0.1.0 lock + fixture error-code alignment). The five v0.1 verbs and five core resources are locked. Additive changes (new optional fields, new verbs) are permitted in v0.1.x; breaking changes require a v0.2.0 bump and a migration guide. Implementations should pin to a specific v0.1.x and follow [`CHANGELOG.md`](./CHANGELOG.md).
+**Status:** v0.1.2 — additive release. The v0.1.0 schema lock holds; v0.1.2 adds four actor-lifecycle verbs (`actor.register`, `actor.list`, `actor.get`, `actor.revoke_token`) without modifying any v0.1.0 schema. Additive changes (new optional fields, new verbs) remain permitted in v0.1.x; breaking changes require a v0.2.0 bump and a migration guide. Implementations should pin to a specific v0.1.x and follow [`CHANGELOG.md`](./CHANGELOG.md).
 
 ## TL;DR for implementers
 
@@ -30,8 +30,27 @@ Five resources, five JSON Schemas. All schemas use JSON Schema 2020-12.
 | `task.create` | [req](./schemas/verbs/task.create.req.json) | [res](./schemas/verbs/task.create.res.json) | Yes (operation_id) |
 | `task.get` | [req](./schemas/verbs/task.get.req.json) | [res](./schemas/verbs/task.get.res.json) | N/A (read-only) |
 | `task.update_status` | [req](./schemas/verbs/task.update_status.req.json) | [res](./schemas/verbs/task.update_status.res.json) | Yes (operation_id) + concurrency-safe (if_match) |
+| `actor.register` (v0.1.2) | [req](./schemas/verbs/actor.register.req.json) | [res](./schemas/verbs/actor.register.res.json) | Yes (operation_id); replay redacts `token` |
+| `actor.list` (v0.1.2) | [req](./schemas/verbs/actor.list.req.json) | [res](./schemas/verbs/actor.list.res.json) | N/A (read-only) |
+| `actor.get` (v0.1.2) | [req](./schemas/verbs/actor.get.req.json) | [res](./schemas/verbs/actor.get.res.json) | N/A (read-only) |
+| `actor.revoke_token` (v0.1.2) | [req](./schemas/verbs/actor.revoke_token.req.json) | [res](./schemas/verbs/actor.revoke_token.res.json) | Yes (operation_id) + domain-idempotent |
 
 `task.create` accepts either `project_id` or `repo_path`. Implementations MAY resolve `repo_path` through a repo-root mapping, a project table, or client-side detection such as `.sprino/project.id`; the response always contains the resolved `task.project_id`.
+
+## Actor lifecycle (v0.1.2)
+
+The four actor-lifecycle verbs let implementations onboard humans, list participants for assignment UIs, and rotate credentials when one leaks. They were deferred from v0.1.0 until the read/write task surface had been exercised.
+
+- **`actor.register`** mints a new human actor and returns the plaintext credential ONCE. v0.1.2 restricts `kind` to `"human"`. Agent registration (with `parent_actor_id` and runtime metadata) is intentionally deferred until a capabilities/spawn model lands — accepting an agent kind today and ignoring `parent_actor_id` would be worse ergonomics than rejecting it.
+- **`actor.list`** returns an envelope object `{actors: [...]}` with an optional `kind` filter. Bare-array responses are not used in Tessera so future pagination fields can land additively.
+- **`actor.get`** fetches a single actor by id. Returns 404 `not_found` when absent.
+- **`actor.revoke_token`** invalidates the actor's active credential. Idempotent both via `operation_id` (replay returns the cached response) and at the domain level (re-revoking an already-revoked actor returns the same `{actor}` shape with no error and writes no new event). Implementations MUST guard against revoking the last active human credential and MUST return error code `last_admin_protected` (HTTP 409) in that case — the system requires at least one human able to authenticate.
+
+> **Token recovery: there isn't one.**
+>
+> The plaintext token is returned exactly once on `actor.register`. On idempotent replay (same `operation_id`) the response is `{actor}` only — the `token` field is omitted. There is intentionally no recovery path. If a token is lost, an authenticated holder of an active credential (typically an admin human) MUST call `actor.revoke_token` and then `actor.register` a fresh actor. This keeps Tessera's credential model honest: no plaintext-at-rest, no "show me the token again" verb, no parallel reset flow to audit.
+
+`actor.revoke_token` is the in-protocol primitive for credential rotation. A more ergonomic single-call rotate verb (revoke + re-register in one round-trip) is intentionally NOT in v0.1.2 — implementations are free to expose one as a non-Tessera HTTP extension on top of these primitives.
 
 ## Idempotency rules (`operation_id`)
 
@@ -226,8 +245,13 @@ v0.1 surface has been exercised by at least one third-party
 implementation:
 
 - Event log replay verbs (`events.list`).
-- Actor lifecycle verbs (`actor.register`, `actor.list`).
 - Project mutation verbs (`project.create`, `project.update`).
+- Agent registration (`actor.register` with `kind: "agent"` and
+  `parent_actor_id`). Deferred until a capabilities/spawn model defines
+  who can register an agent and what `parent_actor_id` enforces. v0.1.2
+  ships humans-only.
+- Audit log of actor-lifecycle events (`actor_events`). Deferred to
+  v0.2 alongside the broader event-log expansion.
 - Comments, labels, search, webhooks, sprints (re-evaluated as universal
   vs implementation-specific in v0.2 design).
 

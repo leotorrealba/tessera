@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "expected_behavior": "Returns an envelope object with `actors` array. Bare-array responses are not used in Tessera — the wrapping leaves room for future pagination fields without a breaking change."
+  },
+  "actors": [
+    {
+      "id": "018c3e7a-0001-7000-8000-000000000001",
+      "kind": "human",
+      "display_name": "Maintainer",
+      "agent_runtime": null,
+      "parent_actor_id": null,
+      "created_at": "2026-04-27T12:00:00Z"
+    },
+    {
+      "id": "018c3e7a-0001-7000-8000-000000000020",
+      "kind": "agent",
+      "display_name": "Claude Code (session)",
+      "agent_runtime": "claude-code",
+      "parent_actor_id": "018c3e7a-0001-7000-8000-000000000001",
+      "created_at": "2026-04-29T11:30:00Z"
+    }
+  ]
+}

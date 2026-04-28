@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/actor.register.req.json",
+  "title": "actor.register — Request",
+  "description": "Register a new human actor and mint a credential. v0.1.2 restricts `kind` to `human` only — agent registration is intentionally deferred until a capabilities/spawn model is defined. Idempotent via operation_id (same operation_id replays the original response shape; see actor.register.res.json for the redaction rule). The plaintext token is returned exactly once on first call.",
+  "type": "object",
+  "required": ["operation_id", "display_name", "kind"],
+  "properties": {
+    "operation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUIDv7 (time-ordered). Same operation_id replays the cached response (with the token field redacted). Same operation_id with a different request body returns 409 Conflict."
+    },
+    "display_name": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "kind": {
+      "enum": ["human"],
+      "description": "v0.1.2 only allows `human`. Agent registration (with parent_actor_id and runtime metadata) is deferred until a capabilities model lands."
+    }
+  },
+  "additionalProperties": false
+}

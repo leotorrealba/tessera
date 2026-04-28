@@ -1,0 +1,13 @@
+{
+  "_meta": {
+    "expected_behavior": "No actor exists with this id. Implementation MUST return 404 with code `not_found`."
+  },
+  "_error": {
+    "status": 404,
+    "code": "not_found",
+    "details": {
+      "field": "actor_id",
+      "reason": "No actor with this id."
+    }
+  }
+}

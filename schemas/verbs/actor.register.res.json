@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/actor.register.res.json",
+  "title": "actor.register — Response",
+  "description": "201 Created on first call: returns BOTH `actor` and `token`. The plaintext `token` is shown exactly once. On idempotent replay (same operation_id + same request_hash) the response MUST OMIT the `token` field — only `actor` is returned. There is intentionally no token-recovery path: if a token is lost, an authenticated holder of an active credential MUST call actor.revoke_token and then actor.register a fresh actor. `token` is therefore not in `required`; conformant implementations enforce its presence on first call and its absence on replay via the paired fixtures (actor-register-happy and actor-register-operation-replay).",
+  "type": "object",
+  "required": ["actor"],
+  "properties": {
+    "actor": { "$ref": "../resources/actor.json" },
+    "token": {
+      "type": "string",
+      "minLength": 32,
+      "description": "Opaque bearer credential. Returned ONLY on the first call for a given operation_id. Implementations MUST NOT return this field on idempotent replay. Implementations MUST NOT log or store this value in plaintext after returning it."
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,14 @@
+{
+  "_meta": {
+    "preconditions": "actor-register-happy fixture already executed in this test session.",
+    "expected_behavior": "Idempotent replay: same operation_id, same payload returns the original `actor` UNCHANGED, but the `token` field MUST be omitted. Plaintext tokens are returned exactly once; this fixture is the canonical proof of the redaction rule. Implementations MUST NOT create a new actor and MUST NOT regenerate or re-return a token."
+  },
+  "actor": {
+    "id": "018c3e7a-0001-7000-8000-000000000010",
+    "kind": "human",
+    "display_name": "Ada Lovelace",
+    "agent_runtime": null,
+    "parent_actor_id": null,
+    "created_at": "2026-04-29T10:00:00Z"
+  }
+}

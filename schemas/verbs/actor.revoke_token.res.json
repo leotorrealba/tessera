@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/actor.revoke_token.res.json",
+  "title": "actor.revoke_token — Response",
+  "description": "Returns the actor whose credential was invalidated. No token field is ever returned by this verb (the actor schema does not carry plaintext credentials).",
+  "type": "object",
+  "required": ["actor"],
+  "properties": {
+    "actor": { "$ref": "../resources/actor.json" }
+  },
+  "additionalProperties": false
+}

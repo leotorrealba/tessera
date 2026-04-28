@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/actor.get.req.json",
+  "title": "actor.get — Request",
+  "description": "Fetch a single actor by id.",
+  "type": "object",
+  "required": ["actor_id"],
+  "properties": {
+    "actor_id": { "type": "string", "format": "uuid" }
+  },
+  "additionalProperties": false
+}
