@@ -1,6 +1,6 @@
-# Tessera v0.1.0
+# Tessera v0.1.1
 
-**Status:** v0.1.0 — schemas stabilized. The five v0.1 verbs and five core resources are locked. Additive changes (new optional fields, new verbs) are permitted in v0.1.x; breaking changes require a v0.2.0 bump and a migration guide. Implementations should pin to a specific v0.1.x and follow [`CHANGELOG.md`](./CHANGELOG.md).
+**Status:** v0.1.1 — schemas stabilized (v0.1.0 lock + fixture error-code alignment). The five v0.1 verbs and five core resources are locked. Additive changes (new optional fields, new verbs) are permitted in v0.1.x; breaking changes require a v0.2.0 bump and a migration guide. Implementations should pin to a specific v0.1.x and follow [`CHANGELOG.md`](./CHANGELOG.md).
 
 ## TL;DR for implementers
 

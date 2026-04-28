@@ -5,7 +5,7 @@
   },
   "_error": {
     "status": 409,
-    "code": "version_conflict",
+    "code": "version_mismatch",
     "details": {
       "task_id": "018c3e7a-0003-7000-8000-000000000001",
       "expected_version": 1,

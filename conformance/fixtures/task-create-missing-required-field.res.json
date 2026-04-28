@@ -4,7 +4,7 @@
   },
   "_error": {
     "status": 400,
-    "code": "invalid_request",
+    "code": "validation_error",
     "details": {
       "field": "title",
       "reason": "Required field is missing."

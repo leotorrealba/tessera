@@ -4,7 +4,7 @@
   },
   "_error": {
     "status": 400,
-    "code": "invalid_request",
+    "code": "validation_error",
     "details": {
       "field": "operation_id",
       "reason": "Value is not a valid UUID."
