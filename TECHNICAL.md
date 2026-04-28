@@ -17,9 +17,8 @@ or a UI.
 
 Concretely, Tessera v0.1.x is:
 
-- **Five JSON Schemas** for the core resources: `actor`, `project`,
-  `task`, `event`, `operation`, plus the response sub-schema for
-  `agent_context`.
+- **Six JSON Schemas** for the core resources: `actor`, `project`,
+  `task`, `event`, `operation`, and `agent_context`.
 - **Five verbs** with paired request/response JSON Schemas:
   `project.list`, `project.get`, `task.create`, `task.get`,
   `task.update_status`.
@@ -92,7 +91,7 @@ Explicit non-scope:
 
 ## 4. Why these resources, and not others
 
-Five resources. Why these five?
+Six resources. Why these six?
 
 | Resource | Why it's universal |
 | --- | --- |
@@ -101,6 +100,7 @@ Five resources. Why these five?
 | **Task** | The atomic unit of work. Variants (story, ticket, issue, item) are renaming, not redesign. |
 | **Event** | The append-only log. Every PM tool needs an audit trail; making it the source of truth (rather than a sidecar) means agents can replay history rather than guessing. |
 | **Operation** | The idempotency dedup record. Required for safe retries from clients (especially agents) that can't always tell whether their last call succeeded. |
+| **Agent Context** | Structured response payload returned on `task.get` so agents start with full context (related tasks, recent events, repo refs) instead of re-explaining. Modeled as its own schema because the truncation contract is non-trivial. |
 
 What's NOT in the v0.1 set:
 
@@ -203,12 +203,18 @@ An implementation is **Tessera v0.1.x conformant** when:
 
 1. Every fixture in `conformance/fixtures/` passes. The implementation
    accepts the request and returns a response that structurally matches
-   `*.res.json`, modulo:
-   - Server-generated UUIDs (any field with `format: uuid` not in the
-     request).
-   - Server-generated timestamps (`created_at`, `updated_at`).
-   - Implementation-specific projection metadata (database row IDs,
-     etc.) that the schemas do not require.
+   `*.res.json`, modulo only the documented conformance normalizations:
+   - **Timestamps** (`created_at`, `updated_at`, `event.created_at`)
+     may differ — assert ISO-8601 and correct ordering.
+   - **`event.id`** may differ — assert valid UUID and uniqueness within
+     the response.
+   - The volume of `agent_context.related_tasks`, `recent_events`, and
+     `repo_refs` is implementation-dependent (only the truncation
+     contract is asserted).
+
+   All other response fields — including `task.id` — must match the
+   fixture exactly, even when server-generated. See
+   [`conformance/README.md`](./conformance/README.md) for the full rules.
 2. All five v0.1 verbs are implemented per [`schemas/verbs/`](./schemas/verbs/).
 3. The semantic rules in section 5 are enforced (operation replay,
    `409 Conflict` on `operation_id` payload mismatch, `410 Gone` on
@@ -233,8 +239,19 @@ watch every fixture replay against your server.
 If you implement Tessera in another language, the simplest path is to
 write a small script that walks `conformance/fixtures/`, replays each
 `*.req.json` against your server, and structurally diffs the response
-against `*.res.json` (with the modulo rules above). Open a PR adding a
-link to your harness in the README — we want to know who's out there.
+against `*.res.json` (with the modulo rules above). Two fixture
+conventions to know about — both documented in
+[`conformance/README.md`](./conformance/README.md):
+
+- **Error fixtures** wrap the expected error under a top-level `_error`
+  envelope (`status`, `code`, optional `details`); the harness compares
+  `_error.status` and `_error.code` exactly.
+- **`_meta`** may appear at the top level of either `.req.json` or
+  `.res.json` files. It documents preconditions in human terms and the
+  harness MUST ignore it when validating shape.
+
+Open a PR adding a link to your harness in the README — we want to know
+who's out there.
 
 ---
 

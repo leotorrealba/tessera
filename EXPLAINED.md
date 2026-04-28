@@ -173,8 +173,7 @@ You don't "use" Tessera directly. You either:
 
 Honest list:
 
-- **It's young.** v0.1.1 as of the v0.0.8 cut of the reference
-  implementation. The schema is stable within v0.1.x but we haven't
+- **It's young.** The schema is stable within v0.1.x but we haven't
   yet seen a third-party implementation, which is the test that
   proves the spec is buildable.
 - **Five verbs is small on purpose.** No comments, no labels, no
