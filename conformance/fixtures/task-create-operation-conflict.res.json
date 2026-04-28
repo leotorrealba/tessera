@@ -1,7 +1,7 @@
 {
   "_meta": {
     "preconditions": "task-create-happy fixture already executed in this test session.",
-    "expected_behavior": "Operation_id was previously used with a different request payload. Implementation MUST reject with 409 Conflict and MUST NOT mutate state."
+    "expected_behavior": "operation_id was previously used with a different request payload. Implementation MUST reject with 409 Conflict and MUST NOT mutate state."
   },
   "_error": {
     "status": 409,

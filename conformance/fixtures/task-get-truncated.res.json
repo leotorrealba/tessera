@@ -1,7 +1,7 @@
 {
   "_meta": {
     "preconditions": "A separate task `018c3e7a-0003-7000-8000-0000000000ff` exists with a large enough event/related-task graph that its agent_context exceeds the 32KB serialization budget.",
-    "expected_behavior": "Implementation MUST set `agent_context.truncated=true` and populate `agent_context.next_page_tokens` so the client can fetch the rest. Total response size MUST stay under 32KB. The structural fields below match exactly; the truncated content (related_tasks, recent_events, repo_refs) is implementation-dependent in volume but MUST be a non-empty subset of what the full agent_context would contain."
+    "expected_behavior": "Implementation MUST set `agent_context.truncated=true` and populate `agent_context.next_page_tokens` so the client can fetch the rest. Total response size MUST stay under 32KB. The structural fields below match exactly; the truncated content (related_tasks, recent_events, repo_refs) is implementation-dependent in volume — collections MAY be empty even when a pagination token is set (a token signals more data is available, not that the current page is non-empty)."
   },
   "task": {
     "id": "018c3e7a-0003-7000-8000-0000000000ff",

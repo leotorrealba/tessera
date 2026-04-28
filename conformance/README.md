@@ -94,31 +94,37 @@ documentation, not protocol.
 
 3. **Compare actual response to expected** with these allowed
    normalizations:
-   - **Timestamps** (`created_at`, `updated_at`, `event.timestamp`) may
+   - **Timestamps** (`created_at`, `updated_at`, `event.created_at`) may
      differ — assert ISO-8601 and correct ordering.
    - **`event.id`** may differ — assert valid UUID, distinct from other
      event ids in the response.
-   - **`task.id`** may differ across implementations IF the
-     implementation generates them server-side. Within a single test
-     session, the id MUST be stable across replays of the same
-     `operation_id`.
+   - **`task.id`** in happy-path fixtures that are referenced by later
+     requests MUST match the fixture value exactly. The conformance
+     suite does not define a harness-side ID-substitution mechanism for
+     dependent requests, so implementations that generate task ids
+     server-side MUST do so deterministically for the conformance
+     inputs — i.e. `task-create-happy` MUST return the fixture-matching
+     id used by subsequent `task-get-*` and `task-update-*` requests.
    - **For `task-get-truncated`**: `agent_context.related_tasks`,
      `recent_events`, `repo_refs` content is implementation-dependent in
-     volume but MUST be non-empty if the corresponding pagination token
-     is set. Total response body MUST stay under 32KB.
+     volume. The corresponding collection MAY be empty even if a
+     pagination token is set (a token signals that the implementation
+     has more data available; it does not guarantee the current page is
+     non-empty). Total response body MUST stay under 32KB.
    - All other structural fields MUST match exactly.
 
 ## What "passes" means
 
 An implementation passes Tessera v0.1.0 if:
 
-- All fixture inputs validate against `schemas/verbs/<verb>.req.json`.
+- All happy-path fixture inputs validate against
+  `schemas/verbs/<verb>.req.json`.
 - All happy-path fixture outputs validate against
   `schemas/verbs/<verb>.res.json`.
-- Error fixtures: actual response status code matches `_error.status`,
-  and the implementation returns a documented error code (matching
-  `_error.code` is recommended but not strictly required — implementers
-  MAY use stable, documented alternatives).
+- Error fixtures may intentionally use requests that do **not**
+  validate against `schemas/verbs/<verb>.req.json`; the implementation
+  MUST reject such requests, with actual response status code matching
+  `_error.status` and a documented error code matching `_error.code`.
 - All happy-path responses match the expected fixtures modulo the
   normalizations above.
 

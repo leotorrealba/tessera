@@ -1,11 +1,11 @@
 # Tessera v0.1.0
 
-**Status:** v0.1.0 — schemas stabilized. The five v0.1 verbs and six core resources are locked. Additive changes (new optional fields, new verbs) are permitted in v0.1.x; breaking changes require a v0.2.0 bump and a migration guide. Implementations should pin to a specific v0.1.x and follow [`CHANGELOG.md`](./CHANGELOG.md).
+**Status:** v0.1.0 — schemas stabilized. The five v0.1 verbs and five core resources are locked. Additive changes (new optional fields, new verbs) are permitted in v0.1.x; breaking changes require a v0.2.0 bump and a migration guide. Implementations should pin to a specific v0.1.x and follow [`CHANGELOG.md`](./CHANGELOG.md).
 
 ## TL;DR for implementers
 
 1. Install your DB schema for the five core resources (`actor`, `project`, `task`, `event`, `operation`). The shapes are defined in [`schemas/resources/`](./schemas/resources/).
-2. Implement the v0.0.2 verbs (`project.list`, `project.get`, `task.create`, `task.get`, `task.update_status`). Request/response shapes are in [`schemas/verbs/`](./schemas/verbs/).
+2. Implement the v0.1.0 verbs (`project.list`, `project.get`, `task.create`, `task.get`, `task.update_status`). Request/response shapes are in [`schemas/verbs/`](./schemas/verbs/).
 3. Make your implementation pass [`conformance/fixtures/`](./conformance/fixtures/). The fixtures form coherent project lookup and create → get → update_status narratives.
 
 ## Core resources
@@ -80,8 +80,7 @@ An implementation is **Tessera v0.1.0 conformant** when:
    structurally matches `*.res.json` modulo:
    - Server-generated UUIDs (any field whose schema marks `format: uuid`
      and is not part of the request).
-   - Server-generated timestamps (`created_at`, `updated_at`,
-     `event.timestamp`).
+   - Server-generated timestamps (`created_at`, `updated_at`).
    - Implementation-specific projection metadata (e.g. database row IDs)
      that the schemas do not require.
 
