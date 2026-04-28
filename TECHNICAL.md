@@ -182,9 +182,9 @@ to issue a follow-up call for every task fetch.
 ### 5e. Structured error envelope
 
 When a verb fails, implementations return a structured error object
-with a stable, lowercase, dot-notated `code` (e.g.
-`task.not_found`, `operation.payload_mismatch`,
-`task.version_conflict`). Codes are part of the protocol surface and
+with a stable, lowercase, snake_case `code` (e.g.
+`validation_error`, `operation_id_conflict`,
+`version_mismatch`). Codes are part of the protocol surface and
 covered by the deprecation policy.
 
 This is what lets agents handle errors without parsing prose.
