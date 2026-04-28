@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.1/resources/task.json",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/resources/task.json",
   "title": "Task",
   "description": "A unit of work. Status is a materialized projection of the latest status_changed event for this task. Implementations MAY keep mutable rows for read performance, but the event log is the source of truth.",
   "type": "object",

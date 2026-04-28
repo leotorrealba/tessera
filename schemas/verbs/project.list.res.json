@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/project.list.res.json",
+  "title": "project.list — Response",
+  "type": "object",
+  "required": ["projects"],
+  "properties": {
+    "projects": {
+      "type": "array",
+      "items": { "$ref": "../resources/project.json" }
+    }
+  },
+  "additionalProperties": false
+}

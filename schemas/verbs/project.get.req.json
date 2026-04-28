@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/project.get.req.json",
+  "title": "project.get — Request",
+  "description": "Fetch a project by project_id, slug, or repo_path.",
+  "type": "object",
+  "anyOf": [
+    { "required": ["project_id"] },
+    { "required": ["slug"] },
+    { "required": ["repo_path"] }
+  ],
+  "properties": {
+    "project_id": { "type": "string", "format": "uuid" },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "repo_path": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}

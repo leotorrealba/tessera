@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.1/resources/actor.json",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/resources/actor.json",
   "title": "Actor",
   "description": "A first-class participant in Tessera. Either a human or an AI agent. The schema-level distinction (kind) is one of the core Tessera ideas: agents are not users-with-a-flag.",
   "type": "object",

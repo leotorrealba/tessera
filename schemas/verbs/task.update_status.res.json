@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.1/verbs/task.update_status.res.json",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/task.update_status.res.json",
   "title": "task.update_status — Response",
   "description": "200 OK on success: returns the new task (version+1) and the status_changed event. 409 Conflict on if_match mismatch: response body still validates this schema but contains the SERVER'S current state, with no new event written. 410 Gone if operation_id is past retention. Status transitions are not restricted at the protocol level (any → any).",
   "type": "object",

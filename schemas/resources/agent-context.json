@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.1/resources/agent-context.json",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/resources/agent-context.json",
   "title": "AgentContext",
   "description": "Structured context returned with task.get and task.create responses so AI agents start with full state instead of re-explaining. Caps at 32KB serialized; over-cap responses set truncated:true and return next_page_tokens for follow-up calls to related_tasks.list and events.list.",
   "type": "object",
@@ -31,7 +31,7 @@
         },
         "additionalProperties": false
       },
-      "description": "Repo references attached to this task. Empty until populated via task.update_context (out of scope for v0.0.1)."
+      "description": "Repo references attached to this task. Empty until populated by a future context-update verb."
     },
     "truncated": {
       "type": "boolean",

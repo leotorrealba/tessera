@@ -1,0 +1,18 @@
+{
+  "projects": [
+    {
+      "id": "018c3e7a-0002-7000-8000-000000000001",
+      "slug": "sprino",
+      "display_name": "Sprino",
+      "repo_path": "/Users/leotorrealba/Development/Sprino",
+      "created_at": "2026-04-28T09:00:00Z"
+    },
+    {
+      "id": "018c3e7a-0002-7000-8000-000000000002",
+      "slug": "tessera",
+      "display_name": "Tessera",
+      "repo_path": "/Users/leotorrealba/Development/tessera",
+      "created_at": "2026-04-28T09:00:00Z"
+    }
+  ]
+}

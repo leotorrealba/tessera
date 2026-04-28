@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.1/resources/operation.json",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/resources/operation.json",
   "title": "Operation",
   "description": "Server-side idempotency dedup record. Stored for 30 days minimum (implementations MAY retain longer). Client supplies operation_id (UUIDv7) on every mutating verb. Server caches the response and replays it for any retry within retention.",
   "type": "object",

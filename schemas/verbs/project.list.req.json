@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/project.list.req.json",
+  "title": "project.list — Request",
+  "description": "List projects visible to the authenticated actor.",
+  "type": "object",
+  "properties": {},
+  "additionalProperties": false
+}

@@ -4,7 +4,7 @@
 
 The name comes from Latin *tessera*: a small mosaic tile, and the wooden tile Roman soldiers carried with their unit's assignment and orders. The metaphor is literal — every task is a tessera, and the project is the mosaic that emerges when many of them are placed in coordination.
 
-> **Status: v0.0.1 (pre-alpha).** Concrete schemas and conformance fixtures shipped. Spec still evolving weekly. Breaking changes expected through v0.1. Implementations should pin to a specific v0.0.x and watch the changelog.
+> **Status: v0.0.2 (pre-alpha).** Project scoping and repo-aware task creation shipped. Spec still evolving weekly. Breaking changes expected through v0.1. Implementations should pin to a specific v0.0.x and watch the changelog.
 
 ## What Tessera defines
 
@@ -17,7 +17,7 @@ A small set of resources that any AI-native project management tool needs in 202
 - **Operations** — idempotency keys (UUIDv7) supplied by the client, with 30-day retention and 409-on-payload-mismatch semantics.
 - **Agent Context** — structured response field on `task.get` so agents start with full state instead of re-explaining.
 
-Specification: [SPEC.md](./SPEC.md). JSON Schemas land here in week 1 of the v0.0.1 milestone.
+Specification: [SPEC.md](./SPEC.md). JSON Schemas and conformance fixtures evolve weekly through the v0.0.x milestones.
 
 ## Why Tessera (and not just MCP)
 
@@ -31,7 +31,7 @@ LSP did this for editors and language servers. OpenTelemetry did it for observab
 
 The two are intentionally decoupled. Tessera is MIT-licensed because protocols belong to everyone. Sprino is AGPL v3 because reference implementations should keep their improvements in the commons.
 
-## Conformance (coming in v0.0.1)
+## Conformance
 
 A `conformance/` directory will hold paired JSON request/response fixtures that any Tessera implementation MUST pass. This is the artifact a second implementer needs. If you want to know whether a tool "supports Tessera," the answer is: does it pass the fixture suite?
 
@@ -39,7 +39,8 @@ A `conformance/` directory will hold paired JSON request/response fixtures that 
 
 - **v0.0.0** ✅ shipped — bootstrap repo, license, founding-story README.
 - **v0.0.1** ✅ shipped — three verbs (`task.create`, `task.get`, `task.update_status`), JSON Schemas for the six core resources, three happy-path conformance fixtures. See [`SPEC.md`](./SPEC.md) and [`schemas/`](./schemas/).
-- **v0.0.x** (next 4 weeks) — concurrency conflict fixtures, operation_id reuse fixtures, agent_context truncation, multi-actor narratives.
+- **v0.0.2** ✅ shipped — project read verbs (`project.list`, `project.get`) and `task.create` repo_path resolution for multi-repo dogfooding.
+- **v0.0.x** (next 3 weeks) — concurrency conflict fixtures, operation_id reuse fixtures, agent_context truncation, multi-actor narratives.
 - **v0.1.0** (week 5 of Sprino's build, ~1 month out) — stable schemas, semver-bound deprecation policy, migration guide template, full conformance suite.
 - **v0.2.0** — comments, labels, search, webhooks, sprints (re-evaluated as universal vs implementation-specific).
 - **v1.0.0** — when there is a second implementation.

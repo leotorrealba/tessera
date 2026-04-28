@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.1/resources/event.json",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/resources/event.json",
   "title": "Event",
   "description": "Append-only record of a state change. Authoritative source of truth for actor activity. Materialized fields on Task (status, assignee_id) are projections of these events. Events MUST NOT be mutated or deleted.",
   "type": "object",

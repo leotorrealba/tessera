@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.1/resources/project.json",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/resources/project.json",
   "title": "Project",
   "description": "A scope boundary. Tasks live in projects. Projects can be auto-detected from a repo's git root, but the protocol does not mandate any specific detection strategy.",
   "type": "object",
