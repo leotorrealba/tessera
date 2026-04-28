@@ -1,0 +1,13 @@
+{
+  "_meta": {
+    "expected_behavior": "Request fails JSON Schema validation: operation_id is not a UUID. Implementation MUST reject with 400 Bad Request before performing any state mutation."
+  },
+  "_error": {
+    "status": 400,
+    "code": "invalid_request",
+    "details": {
+      "field": "operation_id",
+      "reason": "Value is not a valid UUID."
+    }
+  }
+}

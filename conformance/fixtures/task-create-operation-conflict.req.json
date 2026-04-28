@@ -1,0 +1,6 @@
+{
+  "operation_id": "018c3e7a-0005-7000-8000-000000000001",
+  "project_id": "018c3e7a-0002-7000-8000-000000000001",
+  "title": "DIFFERENT TITLE — operation_id reuse with mismatched payload",
+  "description": "Same operation_id as task-create-happy but different title"
+}

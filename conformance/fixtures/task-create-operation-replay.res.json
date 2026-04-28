@@ -1,0 +1,36 @@
+{
+  "_meta": {
+    "preconditions": "task-create-happy fixture already executed in this test session.",
+    "expected_behavior": "Idempotent replay: same operation_id, same payload returns the original response unchanged. Implementation MUST NOT create a new task or new event."
+  },
+  "task": {
+    "id": "018c3e7a-0003-7000-8000-000000000001",
+    "project_id": "018c3e7a-0002-7000-8000-000000000001",
+    "title": "Wire MCP server to Sprino backend",
+    "description": "Week 1 vertical slice: hello-task end-to-end loop",
+    "status": "todo",
+    "assignee_id": null,
+    "created_by": "018c3e7a-0001-7000-8000-000000000001",
+    "version": 1,
+    "created_at": "2026-04-27T12:45:00Z",
+    "updated_at": "2026-04-27T12:45:00Z"
+  },
+  "agent_context": {
+    "related_tasks": [],
+    "recent_events": [],
+    "repo_refs": [],
+    "truncated": false
+  },
+  "event": {
+    "id": "018c3e7a-0004-7000-8000-000000000001",
+    "task_id": "018c3e7a-0003-7000-8000-000000000001",
+    "actor_id": "018c3e7a-0001-7000-8000-000000000001",
+    "kind": "created",
+    "payload": {
+      "title": "Wire MCP server to Sprino backend",
+      "status": "todo"
+    },
+    "operation_id": "018c3e7a-0005-7000-8000-000000000001",
+    "created_at": "2026-04-27T12:45:00Z"
+  }
+}

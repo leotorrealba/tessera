@@ -4,7 +4,7 @@
 
 The name comes from Latin *tessera*: a small mosaic tile, and the wooden tile Roman soldiers carried with their unit's assignment and orders. The metaphor is literal — every task is a tessera, and the project is the mosaic that emerges when many of them are placed in coordination.
 
-> **Status: v0.0.2 (pre-alpha).** Project scoping and repo-aware task creation shipped. Spec still evolving weekly. Breaking changes expected through v0.1. Implementations should pin to a specific v0.0.x and watch the changelog.
+> **Status: v0.1.0 (stabilization milestone).** Five core verbs and six core resources locked. Schemas evolve additively only within v0.1.x. Implementations should pin to a specific v0.1.x and follow the [changelog](./CHANGELOG.md).
 
 ## What Tessera defines
 
@@ -17,7 +17,7 @@ A small set of resources that any AI-native project management tool needs in 202
 - **Operations** — idempotency keys (UUIDv7) supplied by the client, with 30-day retention and 409-on-payload-mismatch semantics.
 - **Agent Context** — structured response field on `task.get` so agents start with full state instead of re-explaining.
 
-Specification: [SPEC.md](./SPEC.md). JSON Schemas and conformance fixtures evolve weekly through the v0.0.x milestones.
+Specification: [SPEC.md](./SPEC.md). JSON Schemas and conformance fixtures evolve additively in v0.1.x.
 
 ## Why Tessera (and not just MCP)
 
@@ -38,10 +38,10 @@ A `conformance/` directory will hold paired JSON request/response fixtures that 
 ## Roadmap
 
 - **v0.0.0** ✅ shipped — bootstrap repo, license, founding-story README.
-- **v0.0.1** ✅ shipped — three verbs (`task.create`, `task.get`, `task.update_status`), JSON Schemas for the six core resources, three happy-path conformance fixtures. See [`SPEC.md`](./SPEC.md) and [`schemas/`](./schemas/).
+- **v0.0.1** ✅ shipped — three verbs (`task.create`, `task.get`, `task.update_status`), JSON Schemas for the six core resources, three happy-path conformance fixtures.
 - **v0.0.2** ✅ shipped — project read verbs (`project.list`, `project.get`) and `task.create` repo_path resolution for multi-repo dogfooding.
-- **v0.0.x** (next 3 weeks) — concurrency conflict fixtures, operation_id reuse fixtures, agent_context truncation, multi-actor narratives.
-- **v0.1.0** (week 5 of Sprino's build, ~1 month out) — stable schemas, semver-bound deprecation policy, migration guide template, full conformance suite.
+- **v0.1.0** ✅ shipped — schema stabilization milestone. Versioning policy, deprecation policy, migration guide template, expanded conformance suite (concurrency conflicts, idempotency edge cases, agent_context truncation, validation errors). See [CHANGELOG.md](./CHANGELOG.md).
+- **v0.1.x** — additive: `events.list`, `actor.register`, `actor.list`, `project.create`, `project.update` once exercised by at least one third-party implementation.
 - **v0.2.0** — comments, labels, search, webhooks, sprints (re-evaluated as universal vs implementation-specific).
 - **v1.0.0** — when there is a second implementation.
 

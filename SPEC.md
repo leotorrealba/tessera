@@ -1,11 +1,11 @@
-# Tessera v0.0.2
+# Tessera v0.1.0
 
-**Status:** v0.0.2 — project scoping and repo-aware task creation shipped. Breaking changes still expected through v0.1. Implementations should pin to a specific v0.0.x and follow upgrade notes.
+**Status:** v0.1.0 — schemas stabilized. The five v0.1 verbs and five core resources are locked. Additive changes (new optional fields, new verbs) are permitted in v0.1.x; breaking changes require a v0.2.0 bump and a migration guide. Implementations should pin to a specific v0.1.x and follow [`CHANGELOG.md`](./CHANGELOG.md).
 
 ## TL;DR for implementers
 
 1. Install your DB schema for the five core resources (`actor`, `project`, `task`, `event`, `operation`). The shapes are defined in [`schemas/resources/`](./schemas/resources/).
-2. Implement the v0.0.2 verbs (`project.list`, `project.get`, `task.create`, `task.get`, `task.update_status`). Request/response shapes are in [`schemas/verbs/`](./schemas/verbs/).
+2. Implement the v0.1.0 verbs (`project.list`, `project.get`, `task.create`, `task.get`, `task.update_status`). Request/response shapes are in [`schemas/verbs/`](./schemas/verbs/).
 3. Make your implementation pass [`conformance/fixtures/`](./conformance/fixtures/). The fixtures form coherent project lookup and create → get → update_status narratives.
 
 ## Core resources
@@ -21,7 +21,7 @@ Five resources, five JSON Schemas. All schemas use JSON Schema 2020-12.
 | **Operation** | [`schemas/resources/operation.json`](./schemas/resources/operation.json) | Server-side idempotency dedup record. 30-day minimum retention. |
 | **AgentContext** | [`schemas/resources/agent-context.json`](./schemas/resources/agent-context.json) | Structured response field on `task.create` and `task.get`. Caps at 32KB; over-cap responses set `truncated:true` with `next_page_tokens`. |
 
-## Verbs (v0.0.2)
+## Verbs (v0.1.0)
 
 | Verb | Request | Response | Idempotent? |
 | --- | --- | --- | --- |
@@ -67,21 +67,172 @@ The reference implementation ([Sprino](https://github.com/leotorrealba/sprino)) 
 
 ## Conformance
 
-A runnable conformance suite lives in [`conformance/`](./conformance/). See [`conformance/README.md`](./conformance/README.md) for how to run it against your implementation.
+A runnable conformance suite lives in [`conformance/`](./conformance/). See
+[`conformance/README.md`](./conformance/README.md) for the harness contract.
 
-## Out of scope for v0.0.2 (planned for v0.0.x → v0.1)
+### What "Tessera-conformant" means
 
-- Concurrency conflict scenarios (multiple writers).
-- Operation_id reuse with mismatched payload (409 case).
-- Operation expiry (410 Gone).
-- 32KB agent_context truncation + pagination.
-- Multi-actor narratives.
+An implementation is **Tessera v0.1.0 conformant** when:
+
+1. **Every fixture in [`conformance/fixtures/`](./conformance/fixtures/) passes.**
+   Fixtures come in paired `*.req.json` / `*.res.json` files. The
+   implementation accepts the request and returns a response that
+   structurally matches `*.res.json` modulo:
+   - Server-generated UUIDs (any field whose schema marks `format: uuid`
+     and is not part of the request).
+   - Server-generated timestamps (`created_at`, `updated_at`).
+   - Implementation-specific projection metadata (e.g. database row IDs)
+     that the schemas do not require.
+
+2. **All five v0.1 verbs are implemented** with the request/response
+   shapes in [`schemas/verbs/`](./schemas/verbs/): `project.list`,
+   `project.get`, `task.create`, `task.get`, `task.update_status`.
+
+3. **Idempotency, concurrency, and event-log rules** from this document
+   are enforced (operation replay, 409 on `operation_id` payload
+   mismatch, 410 on expired operations, optimistic concurrency via
+   `if_match`/`version`).
+
+### What conformance does NOT cover
+
+- Transport (HTTP, MCP, gRPC). The reference implementation exposes both
+  HTTP and MCP, but the spec is transport-agnostic.
+- Storage backend (Postgres, SQLite, in-memory). Implementations may
+  store events however they like as long as the projection rules hold.
+- Latency / throughput. Tessera defines correctness, not performance.
+- Authentication / authorization. These are implementation concerns;
+  Tessera assumes a trust boundary above the protocol layer.
+
+### Reference harness
+
+The reference implementation [Sprino](https://github.com/leotorrealba/sprino)
+runs the entire fixture suite in CI as `apps/server/test/conformance.test.ts`.
+That harness is the canonical way to verify your implementation: clone
+Tessera as a git submodule (or sibling), point the test runner at it,
+and watch every fixture replay against your server.
+
+## Versioning
+
+Tessera uses [Semantic Versioning 2.0.0](https://semver.org/) with the
+following clarifications.
+
+### What counts as a change
+
+| Change | Bump |
+| --- | --- |
+| Adding a new optional field on a request or response | MINOR |
+| Adding a new verb | MINOR |
+| Adding a new conformance fixture (covering existing behavior) | PATCH |
+| Clarifying or restating existing rules without changing them | PATCH |
+| Renaming or removing a field | MAJOR |
+| Tightening a type (e.g. making an optional field required) | MAJOR |
+| Changing a verb's idempotency or concurrency semantics | MAJOR |
+| Removing a verb | MAJOR (after a deprecation cycle, see below) |
+
+### `v0.x` vs `v1.x`
+
+- **`v0.x`** — schemas may evolve. Breaking changes ship as MINOR bumps
+  during this phase (`v0.0.2` → `v0.1.0` is breaking-allowed). The
+  `v0.1.0` milestone freezes the v0.1 surface so implementers can build
+  against a stable target. Within `v0.1.x`, only additive changes ship.
+- **`v1.x`** — full semver applies. Breaking changes require a `v2.0.0`
+  bump and a migration guide.
+
+### Pinning
+
+Implementations MUST declare which Tessera version they target (e.g.,
+`"tessera": "0.1.0"` in their manifest, README, or response metadata).
+Tooling SHOULD reject mismatches at the major or minor level rather than
+silently downgrading.
+
+## Deprecation
+
+A field, verb, or rule may be **deprecated** before removal. The deprecation
+lifecycle is:
+
+1. **Announce.** The next minor release marks the item deprecated:
+   - In schemas: `"deprecated": true` and `"description"` updated to
+     name the replacement (per JSON Schema 2020-12 keyword).
+   - In SPEC.md: a "Deprecated in `vX.Y.Z`" note next to the item.
+   - In CHANGELOG.md: a `### Deprecated` block.
+
+2. **Notice period.** Minimum **90 days** of wall-clock time AND at
+   least one minor release between the deprecation announcement and the
+   removal.
+
+3. **Runtime hint (optional).** Implementations MAY include a
+   `Tessera-Deprecation: <field-or-verb>; sunset=<RFC3339-date>` HTTP
+   response header (or equivalent for non-HTTP transports) when a client
+   uses a deprecated item, so SDKs can warn at runtime.
+
+4. **Removal.** The next major version (`vN.0.0`) removes the item. The
+   removal must be listed in the migration guide (see template below).
+
+Implementations are NOT required to emit deprecation warnings, but if
+they do, they MUST use the `Tessera-Deprecation` header convention so
+clients can detect them generically.
+
+## Migration guide template
+
+Every breaking-version bump (any MAJOR, plus the `v0.x → v0.x+1`
+breaking releases during the `v0.x` phase) ships a migration guide using
+this template. The guide lives at `docs/migrations/vN.Y.Z.md` in this
+repo.
+
+```markdown
+# Migrating to Tessera vN.Y.Z
+
+**From:** vN.Y-1.Z (or vN-1.x.y)
+**To:** vN.Y.Z
+**Released:** YYYY-MM-DD
+**Migration window:** how long the previous version remains supported
+
+## Summary
+
+One paragraph: what changes and why.
+
+## Breaking changes
+
+For each breaking change:
+
+### `<verb>` / `<resource>` / `<rule>`
+
+- **What changed:** before vs after, with code or schema snippets.
+- **Why:** the constraint or design driver.
+- **Detection:** how a v(N-1) implementation looks on the wire vs
+  vN.Y.Z. (Often: a specific HTTP status code, response field, or
+  schema-validation error.)
+- **Mechanical fix:** the smallest change to bring an implementation
+  forward. Include diffs where useful.
+
+## New additive features
+
+(Optional, if MINOR-additive changes also shipped.)
+
+## Test fixtures
+
+List which `conformance/fixtures/` files cover each breaking change so
+implementers can verify their migration.
+
+## Acknowledgments
+
+(Optional.)
+```
+
+## Out of scope for v0.1.0 (planned for later)
+
+These were considered for v0.1.0 and intentionally deferred until the
+v0.1 surface has been exercised by at least one third-party
+implementation:
+
 - Event log replay verbs (`events.list`).
-- Project mutation verbs (`project.create`, `project.update`).
 - Actor lifecycle verbs (`actor.register`, `actor.list`).
-- Comments, labels, search, sprints (re-evaluated as universal vs implementation-specific in v0.2 design).
+- Project mutation verbs (`project.create`, `project.update`).
+- Comments, labels, search, webhooks, sprints (re-evaluated as universal
+  vs implementation-specific in v0.2 design).
 
-These will graduate into v0.1 once stable.
+These will land additively in `v0.1.x` minor releases (no breaking
+change) once the design is validated.
 
 ## Reference implementation
 

@@ -1,0 +1,14 @@
+{
+  "_meta": {
+    "preconditions": "task-create-happy fixture already executed in this test session.",
+    "expected_behavior": "operation_id was previously used with a different request payload. Implementation MUST reject with 409 Conflict and MUST NOT mutate state."
+  },
+  "_error": {
+    "status": 409,
+    "code": "operation_payload_mismatch",
+    "details": {
+      "operation_id": "018c3e7a-0005-7000-8000-000000000001",
+      "reason": "Request payload differs from the original operation."
+    }
+  }
+}
