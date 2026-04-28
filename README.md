@@ -6,6 +6,14 @@ The name comes from Latin *tessera*: a small mosaic tile, and the wooden tile Ro
 
 > **Status: v0.1.0 (stabilization milestone).** Five core verbs and six core resources locked. Schemas evolve additively only within v0.1.x. Implementations should pin to a specific v0.1.x and follow the [changelog](./CHANGELOG.md).
 
+## Two reading paths
+
+- **New here?** Read [`EXPLAINED.md`](./EXPLAINED.md) — Tessera in
+  plain English, no jargon.
+- **Implementing Tessera?** Read [`TECHNICAL.md`](./TECHNICAL.md) for
+  the engineering deep-dive, then [`SPEC.md`](./SPEC.md) for the
+  normative contract.
+
 ## What Tessera defines
 
 A small set of resources that any AI-native project management tool needs in 2026:
