@@ -1,0 +1,5 @@
+{
+  "operation_id": "not-a-uuid",
+  "project_id": "018c3e7a-0002-7000-8000-000000000001",
+  "title": "Validation: malformed operation_id"
+}

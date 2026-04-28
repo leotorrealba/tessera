@@ -1,0 +1,6 @@
+{
+  "operation_id": "018c3e7a-0005-7000-8000-000000000001",
+  "project_id": "018c3e7a-0002-7000-8000-000000000001",
+  "title": "Wire MCP server to Sprino backend",
+  "description": "Week 1 vertical slice: hello-task end-to-end loop"
+}

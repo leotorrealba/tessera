@@ -1,0 +1,13 @@
+{
+  "_meta": {
+    "expected_behavior": "Request omits the required `title` field. Implementation MUST reject with 400 Bad Request before performing any state mutation."
+  },
+  "_error": {
+    "status": 400,
+    "code": "invalid_request",
+    "details": {
+      "field": "title",
+      "reason": "Required field is missing."
+    }
+  }
+}

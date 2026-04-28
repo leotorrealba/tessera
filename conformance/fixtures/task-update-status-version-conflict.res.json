@@ -1,0 +1,27 @@
+{
+  "_meta": {
+    "preconditions": "task-update-status-happy fixture already executed in this test session (task version is now 2).",
+    "expected_behavior": "Optimistic concurrency: client sent if_match=1 but server task is at version 2. Implementation MUST reject with 409 Conflict and return the current task body so the client can retry with the correct if_match."
+  },
+  "_error": {
+    "status": 409,
+    "code": "version_conflict",
+    "details": {
+      "task_id": "018c3e7a-0003-7000-8000-000000000001",
+      "expected_version": 1,
+      "actual_version": 2
+    },
+    "current_task": {
+      "id": "018c3e7a-0003-7000-8000-000000000001",
+      "project_id": "018c3e7a-0002-7000-8000-000000000001",
+      "title": "Wire MCP server to Sprino backend",
+      "description": "Week 1 vertical slice: hello-task end-to-end loop",
+      "status": "done",
+      "assignee_id": null,
+      "created_by": "018c3e7a-0001-7000-8000-000000000001",
+      "version": 2,
+      "created_at": "2026-04-27T12:45:00Z",
+      "updated_at": "2026-04-27T13:00:00Z"
+    }
+  }
+}

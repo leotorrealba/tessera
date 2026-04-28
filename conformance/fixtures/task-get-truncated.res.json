@@ -1,0 +1,28 @@
+{
+  "_meta": {
+    "preconditions": "A separate task `018c3e7a-0003-7000-8000-0000000000ff` exists with a large enough event/related-task graph that its agent_context exceeds the 32KB serialization budget.",
+    "expected_behavior": "Implementation MUST set `agent_context.truncated=true` and populate `agent_context.next_page_tokens` so the client can fetch the rest. Total response size MUST stay under 32KB. The structural fields below match exactly; the truncated content (related_tasks, recent_events, repo_refs) is implementation-dependent in volume but MUST be a non-empty subset of what the full agent_context would contain."
+  },
+  "task": {
+    "id": "018c3e7a-0003-7000-8000-0000000000ff",
+    "project_id": "018c3e7a-0002-7000-8000-000000000001",
+    "title": "Long-running task with extensive agent context",
+    "description": "Used for the truncation conformance fixture.",
+    "status": "in_progress",
+    "assignee_id": null,
+    "created_by": "018c3e7a-0001-7000-8000-000000000001",
+    "version": 5,
+    "created_at": "2026-04-27T10:00:00Z",
+    "updated_at": "2026-04-27T15:00:00Z"
+  },
+  "agent_context": {
+    "related_tasks": [],
+    "recent_events": [],
+    "repo_refs": [],
+    "truncated": true,
+    "next_page_tokens": {
+      "recent_events": "opaque-token-for-events-pagination",
+      "related_tasks": "opaque-token-for-related-tasks-pagination"
+    }
+  }
+}
