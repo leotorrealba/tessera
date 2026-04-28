@@ -11,6 +11,36 @@ upgrade notes when bumping.
 
 ---
 
+## [v0.1.1] — Conformance fixture error-code alignment
+
+**Status: patch. Schemas unchanged. Documentation/fixtures only.**
+
+### Fixed
+- Conformance fixture `_error.code` strings now match the codes the
+  reference implementation (Sprino) actually emits, eliminating a
+  contradiction with v0.1.0's strict `_error.code` matching contract:
+  - `task-create-operation-conflict`: `operation_payload_mismatch` →
+    `operation_id_conflict`
+  - `task-update-status-version-conflict`: `version_conflict` →
+    `version_mismatch`
+  - `task-create-invalid-uuid`: `invalid_request` → `validation_error`
+  - `task-create-missing-required-field`: `invalid_request` →
+    `validation_error`
+
+These were placeholder strings introduced in v0.1.0 without verifying
+against a working implementation. The codes a conformant implementation
+needs to emit are the ones the fixtures now declare.
+
+### Unchanged
+- All schemas (verbs and resources) — bytes-identical to v0.1.0.
+- All happy-path fixtures.
+- HTTP statuses on error fixtures (400, 409 still apply as before).
+
+Implementations that already emit the new codes (Sprino does) require
+zero changes.
+
+---
+
 ## [v0.1.0] — Spec stabilization milestone
 
 **Status: stable schemas. Additive changes only through v0.1.x.**
@@ -95,6 +125,7 @@ upgrade notes when bumping.
 
 ---
 
+[v0.1.1]: https://github.com/leotorrealba/tessera/compare/v0.1.0...v0.1.1
 [v0.1.0]: https://github.com/leotorrealba/tessera/compare/v0.0.2...v0.1.0
 [v0.0.2]: https://github.com/leotorrealba/tessera/compare/v0.0.1...v0.0.2
 [v0.0.1]: https://github.com/leotorrealba/tessera/compare/v0.0.0...v0.0.1
