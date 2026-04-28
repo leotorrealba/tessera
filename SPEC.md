@@ -21,7 +21,7 @@ Five resources, five JSON Schemas. All schemas use JSON Schema 2020-12.
 | **Operation** | [`schemas/resources/operation.json`](./schemas/resources/operation.json) | Server-side idempotency dedup record. 30-day minimum retention. |
 | **AgentContext** | [`schemas/resources/agent-context.json`](./schemas/resources/agent-context.json) | Structured response field on `task.create` and `task.get`. Caps at 32KB; over-cap responses set `truncated:true` with `next_page_tokens`. |
 
-## Verbs (v0.1.0)
+## Verbs (v0.1)
 
 | Verb | Request | Response | Idempotent? |
 | --- | --- | --- | --- |
@@ -72,7 +72,7 @@ A runnable conformance suite lives in [`conformance/`](./conformance/). See
 
 ### What "Tessera-conformant" means
 
-An implementation is **Tessera v0.1.0 conformant** when:
+An implementation is **Tessera v0.1.x conformant** when:
 
 1. **Every fixture in [`conformance/fixtures/`](./conformance/fixtures/) passes.**
    Fixtures come in paired `*.req.json` / `*.res.json` files. The
@@ -219,7 +219,7 @@ implementers can verify their migration.
 (Optional.)
 ```
 
-## Out of scope for v0.1.0 (planned for later)
+## Out of scope for v0.1 (planned for later)
 
 These were considered for v0.1.0 and intentionally deferred until the
 v0.1 surface has been exercised by at least one third-party

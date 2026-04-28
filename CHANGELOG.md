@@ -125,6 +125,7 @@ zero changes.
 
 ---
 
+[v0.1.1]: https://github.com/leotorrealba/tessera/compare/v0.1.0...v0.1.1
 [v0.1.0]: https://github.com/leotorrealba/tessera/compare/v0.0.2...v0.1.0
 [v0.0.2]: https://github.com/leotorrealba/tessera/compare/v0.0.1...v0.0.2
 [v0.0.1]: https://github.com/leotorrealba/tessera/compare/v0.0.0...v0.0.1
