@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/actor.list.res.json",
+  "title": "actor.list — Response",
+  "description": "Envelope object wrapping the array under `actors`. The wrapping is deliberate: a future v0.1.x may add pagination fields (e.g. `next_page_token`) without a breaking change. Bare-array responses are not used in Tessera.",
+  "type": "object",
+  "required": ["actors"],
+  "properties": {
+    "actors": {
+      "type": "array",
+      "items": { "$ref": "../resources/actor.json" }
+    }
+  },
+  "additionalProperties": false
+}

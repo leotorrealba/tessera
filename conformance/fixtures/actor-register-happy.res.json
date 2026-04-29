@@ -1,0 +1,14 @@
+{
+  "_meta": {
+    "expected_behavior": "First call for this operation_id. Implementation MUST mint a new human actor, return BOTH `actor` and `token`, and persist the operation cache so a replay returns the redacted shape."
+  },
+  "actor": {
+    "id": "018c3e7a-0001-7000-8000-000000000010",
+    "kind": "human",
+    "display_name": "Ada Lovelace",
+    "agent_runtime": null,
+    "parent_actor_id": null,
+    "created_at": "2026-04-29T10:00:00Z"
+  },
+  "token": "tessera_live_3f9a8c2b1d7e4a6f9b0c2e8d1a3b5c7f"
+}

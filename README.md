@@ -4,7 +4,7 @@
 
 The name comes from Latin *tessera*: a small mosaic tile, and the wooden tile Roman soldiers carried with their unit's assignment and orders. The metaphor is literal — every task is a tessera, and the project is the mosaic that emerges when many of them are placed in coordination.
 
-> **Status: v0.1.0 (stabilization milestone).** Five core verbs and six core resources locked. Schemas evolve additively only within v0.1.x. Implementations should pin to a specific v0.1.x and follow the [changelog](./CHANGELOG.md).
+> **Status: v0.1.2 (additive — actor lifecycle).** Five core resources locked since v0.1.0; nine verbs now (five task/project + four actor-lifecycle). Schemas evolve additively only within v0.1.x. Implementations should pin to a specific v0.1.x and follow the [changelog](./CHANGELOG.md).
 
 ## Two reading paths
 
@@ -49,7 +49,9 @@ A `conformance/` directory will hold paired JSON request/response fixtures that 
 - **v0.0.1** ✅ shipped — three verbs (`task.create`, `task.get`, `task.update_status`), JSON Schemas for the six core resources, three happy-path conformance fixtures.
 - **v0.0.2** ✅ shipped — project read verbs (`project.list`, `project.get`) and `task.create` repo_path resolution for multi-repo dogfooding.
 - **v0.1.0** ✅ shipped — schema stabilization milestone. Versioning policy, deprecation policy, migration guide template, expanded conformance suite (concurrency conflicts, idempotency edge cases, agent_context truncation, validation errors). See [CHANGELOG.md](./CHANGELOG.md).
-- **v0.1.x** — additive: `events.list`, `actor.register`, `actor.list`, `project.create`, `project.update` once exercised by at least one third-party implementation.
+- **v0.1.1** ✅ shipped — conformance fixture error-code alignment with the reference implementation. Schemas unchanged.
+- **v0.1.2** ✅ shipped — actor lifecycle: `actor.register` (humans only), `actor.list`, `actor.get`, `actor.revoke_token`. Plaintext token returned exactly once; idempotent replay redacts the token. Agent registration and `actor_events` audit log remain deferred.
+- **v0.1.x** — additive: `events.list`, agent registration (with capabilities/spawn model), `project.create`, `project.update` once exercised by at least one third-party implementation.
 - **v0.2.0** — comments, labels, search, webhooks, sprints (re-evaluated as universal vs implementation-specific).
 - **v1.0.0** — when there is a second implementation.
 

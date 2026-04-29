@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/actor.revoke_token.req.json",
+  "title": "actor.revoke_token — Request",
+  "description": "Invalidate the active credential for the given actor. Idempotent via operation_id; revoking an already-revoked actor returns the same response shape (no error). Implementations MUST guard against revoking the last active human credential and MUST return error code `last_admin_protected` (HTTP 409) in that case — the system requires at least one human able to authenticate.",
+  "type": "object",
+  "required": ["operation_id", "actor_id"],
+  "properties": {
+    "operation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUIDv7. Same operation_id replays the cached response. Same operation_id with a different request body returns 409 Conflict."
+    },
+    "actor_id": { "type": "string", "format": "uuid" }
+  },
+  "additionalProperties": false
+}

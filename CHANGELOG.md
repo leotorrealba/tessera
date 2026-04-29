@@ -11,6 +11,71 @@ upgrade notes when bumping.
 
 ---
 
+## [v0.1.2] — 2026-04-29 — Actor lifecycle verbs
+
+**Status: minor. Additive only. No breaking changes; the v0.1.0 schema
+lock holds. Implementations conformant to v0.1.0 / v0.1.1 remain
+conformant to v0.1.2 without changes — they simply do not implement the
+new verbs.**
+
+### Added
+- Four actor-lifecycle verbs:
+  - `actor.register` — mint a new human actor and return a one-time
+    plaintext token. Idempotent via `operation_id`.
+  - `actor.list` — read; envelope `{actors: [...]}` with optional `kind`
+    filter. Deliberate envelope (not a bare array) so future pagination
+    fields can land additively.
+  - `actor.get` — read by id.
+  - `actor.revoke_token` — invalidate the actor's active credential.
+    Idempotent via `operation_id` AND domain-idempotent (re-revoke is a
+    no-op returning the same `{actor}` shape).
+- Eight new schema files under `schemas/verbs/` (paired req/res for each
+  verb).
+- Eleven new conformance fixtures under `conformance/fixtures/`:
+  - `actor-register-happy`, `actor-register-operation-replay`,
+    `actor-register-invalid-kind`, `actor-register-validation-error`
+  - `actor-list-happy`, `actor-list-filtered-by-kind`
+  - `actor-get-happy`, `actor-get-not-found`
+  - `actor-revoke-happy`, `actor-revoke-already-revoked`,
+    `actor-revoke-not-found`
+- New error code `last_admin_protected` (HTTP 409) on
+  `actor.revoke_token` when the call would invalidate the last active
+  human credential. Documented in SPEC; not exercised by a fixture in
+  this release because it is a system-wide precondition, not a
+  request-shape error.
+
+### Token redaction rule (read this carefully)
+The plaintext `token` is returned by `actor.register` exactly ONCE — on
+the first call for a given `operation_id`. Idempotent replay (same
+`operation_id` + same request body) returns `{actor}` ONLY; the `token`
+field MUST be omitted. The schema permits both shapes by leaving `token`
+out of `required`; the redaction rule is enforced by the paired
+fixtures (`actor-register-happy.res.json` MUST contain `token`;
+`actor-register-operation-replay.res.json` MUST NOT). There is
+intentionally no token-recovery path — if a token is lost, the holder of
+an active credential MUST `actor.revoke_token` and `actor.register` a
+fresh actor. See [SPEC.md § Actor lifecycle](./SPEC.md#actor-lifecycle-v012).
+
+### Intentional non-additions
+- `parent_actor_id` is NOT in the `actor.register` request body. The
+  resource schema still carries the field for agents that other code
+  paths create, but accepting it on register today would be
+  accepted-then-ignored ergonomics — it returns when agent registration
+  itself returns, alongside a real capabilities/spawn model.
+- `kind: "agent"` is NOT accepted on register in v0.1.2. The enum is
+  `["human"]`. This is the deliberate humans-only scope for the verb;
+  agent registration is deferred.
+- `actor.rotate_token` (single-call revoke + re-register) is NOT in
+  v0.1.2. The two primitives compose; implementations may expose a
+  rotate convenience as a non-Tessera HTTP extension.
+- `actor_events` audit log is NOT in v0.1.2; deferred to v0.2.
+
+### Unchanged
+- All v0.1.0 schemas and v0.1.1 fixtures — bytes-identical.
+- All previous error codes and HTTP semantics.
+
+---
+
 ## [v0.1.1] — Conformance fixture error-code alignment
 
 **Status: patch. Schemas unchanged. Documentation/fixtures only.**
@@ -125,6 +190,7 @@ zero changes.
 
 ---
 
+[v0.1.2]: https://github.com/leotorrealba/tessera/compare/v0.1.1...v0.1.2
 [v0.1.1]: https://github.com/leotorrealba/tessera/compare/v0.1.0...v0.1.1
 [v0.1.0]: https://github.com/leotorrealba/tessera/compare/v0.0.2...v0.1.0
 [v0.0.2]: https://github.com/leotorrealba/tessera/compare/v0.0.1...v0.0.2

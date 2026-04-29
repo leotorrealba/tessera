@@ -2,7 +2,7 @@
 
 This directory holds paired request/response fixtures that any Tessera
 implementation MUST pass to claim Tessera support. The pinned target
-version is in [`SPEC.md`](../SPEC.md) (currently v0.1.0).
+version is in [`SPEC.md`](../SPEC.md) (currently v0.1.2).
 
 ## Layout
 
@@ -25,6 +25,18 @@ conformance/
     # Validation errors
     ├── task-create-invalid-uuid.{req,res}.json         # malformed operation_id → 400
     └── task-create-missing-required-field.{req,res}.json  # omitted title → 400
+    # Actor lifecycle (v0.1.2)
+    ├── actor-register-happy.{req,res}.json             # mints actor, returns {actor, token}
+    ├── actor-register-operation-replay.{req,res}.json  # same op_id → {actor} ONLY (token redacted)
+    ├── actor-register-invalid-kind.{req,res}.json      # kind: "agent" → 400 (humans-only in v0.1.2)
+    ├── actor-register-validation-error.{req,res}.json  # missing display_name → 400
+    ├── actor-list-happy.{req,res}.json                 # envelope {actors: [...]}
+    ├── actor-list-filtered-by-kind.{req,res}.json      # kind=human filter
+    ├── actor-get-happy.{req,res}.json                  # returns {actor}
+    ├── actor-get-not-found.{req,res}.json              # unknown actor_id → 404 not_found
+    ├── actor-revoke-happy.{req,res}.json               # returns {actor}, no token field
+    ├── actor-revoke-already-revoked.{req,res}.json     # second revoke → idempotent {actor}
+    └── actor-revoke-not-found.{req,res}.json           # unknown actor_id → 404 not_found
 ```
 
 Each fixture is a pair: a `*.req.json` file with the verb input, and a
@@ -136,7 +148,14 @@ An implementation passes Tessera v0.1.0 if:
 - Operation expiry (after 30 days → 410 Gone). Long-running scenario,
   not easily expressible in a sub-second test fixture.
 - Project mutation verbs (`project.create`, `project.update`).
-- Actor lifecycle verbs (`actor.register`, `actor.list`).
+- Agent registration (`actor.register` with `kind: "agent"`). v0.1.2
+  ships humans-only; agent registration returns alongside a
+  capabilities/spawn model.
+- `actor_events` audit log (deferred to v0.2).
+- `last_admin_protected` system-precondition fixture for
+  `actor.revoke_token` — this is enforced by spec text in v0.1.2 but
+  not yet wired into a deterministic fixture (it depends on
+  system-wide credential state, not a single request shape).
 
 These will land additively in `v0.1.x` minor releases.
 

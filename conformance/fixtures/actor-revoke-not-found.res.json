@@ -1,0 +1,13 @@
+{
+  "_meta": {
+    "expected_behavior": "No actor exists with this id. Implementation returns 404 with code `not_found`. This fixture exercises a failed-precondition path; whether the operation row is persisted is implementation-defined and not asserted by the conformance suite."
+  },
+  "_error": {
+    "status": 404,
+    "code": "not_found",
+    "details": {
+      "field": "actor_id",
+      "reason": "No actor with this id."
+    }
+  }
+}

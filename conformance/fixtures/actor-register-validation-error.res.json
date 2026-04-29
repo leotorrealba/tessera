@@ -1,0 +1,13 @@
+{
+  "_meta": {
+    "expected_behavior": "Request omits the required `display_name` field. Implementation MUST reject with 400 Bad Request before performing any state mutation."
+  },
+  "_error": {
+    "status": 400,
+    "code": "validation_error",
+    "details": {
+      "field": "display_name",
+      "reason": "Required field is missing."
+    }
+  }
+}
