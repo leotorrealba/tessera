@@ -1,0 +1,14 @@
+{
+  "_meta": {
+    "preconditions": "Actor 018c3e7a-0001-7000-8000-000000000020 exists as an agent actor. The request is intentionally invalid because `parent_actor_id` points to an agent, not a human.",
+    "expected_behavior": "Agent registration MUST reject a `parent_actor_id` that does not resolve to a human actor. Implementation MUST return 400 Bad Request before performing any state mutation or minting any credential."
+  },
+  "_error": {
+    "status": 400,
+    "code": "validation_error",
+    "details": {
+      "field": "parent_actor_id",
+      "reason": "Parent actor must reference a human actor."
+    }
+  }
+}

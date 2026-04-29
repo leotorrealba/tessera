@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/actor.deactivate.res.json",
+  "title": "actor.deactivate — Response",
+  "description": "Returns the canonical agent actor envelope for the session whose credential was deactivated. No credential material is returned by this verb.",
+  "type": "object",
+  "required": ["actor"],
+  "properties": {
+    "actor": {
+      "description": "Canonical agent actor envelope for the deactivated session.",
+      "allOf": [
+        { "$ref": "../resources/actor.json" },
+        {
+          "type": "object",
+          "required": ["id", "kind", "display_name", "created_at", "agent_runtime", "parent_actor_id"],
+          "properties": {
+            "kind": {
+              "const": "agent",
+              "description": "Deactivation responses are only defined for agent sessions."
+            },
+            "agent_runtime": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Runtime identifier for the deactivated agent session."
+            },
+            "parent_actor_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Human actor responsible for the deactivated agent session."
+            }
+          }
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

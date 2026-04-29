@@ -1,0 +1,14 @@
+{
+  "_meta": {
+    "preconditions": "actor-deactivate-happy already executed: actor 018c3e7a-0001-7000-8000-000000000020 is already inactive.",
+    "expected_behavior": "Domain idempotency: deactivating an already-inactive agent session returns the same `{actor}` shape with no error and MUST NOT mint a new credential or require a replayed operation_id."
+  },
+  "actor": {
+    "id": "018c3e7a-0001-7000-8000-000000000020",
+    "kind": "agent",
+    "display_name": "Claude Code (session)",
+    "agent_runtime": "claude-code",
+    "parent_actor_id": "018c3e7a-0001-7000-8000-000000000001",
+    "created_at": "2026-04-29T11:30:00Z"
+  }
+}

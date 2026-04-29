@@ -1,13 +1,13 @@
 {
   "_meta": {
-    "expected_behavior": "v0.1.2 restricts `kind` to `human` only. Agent registration is intentionally deferred until a capabilities/spawn model is defined. Implementation MUST reject with 400 Bad Request before performing any state mutation."
+    "expected_behavior": "In v0.1.3, `kind: \"agent\"` is allowed only when the request also supplies the required agent-registration fields. This fixture intentionally omits `agent_runtime` and `parent_actor_id`, so the implementation MUST reject with 400 Bad Request before performing any state mutation."
   },
   "_error": {
     "status": 400,
     "code": "validation_error",
     "details": {
-      "field": "kind",
-      "reason": "Only `human` is accepted in v0.1.2."
+      "field": "agent_runtime",
+      "reason": "Agent registration requires both `agent_runtime` and `parent_actor_id`."
     }
   }
 }

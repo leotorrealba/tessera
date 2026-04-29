@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/actor.heartbeat.res.json",
+  "title": "actor.heartbeat — Response",
+  "description": "Returns the canonical actor envelope after liveness metadata is refreshed server-side for an active agent session. The response remains the canonical actor envelope even though the liveness bookkeeping itself is server-side. This verb MUST NOT mint, rotate, or return credentials, and MUST NOT mutate runtime or parent-linkage metadata.",
+  "type": "object",
+  "required": ["actor"],
+  "properties": {
+    "actor": {
+      "description": "Canonical agent actor envelope for the session whose liveness was refreshed.",
+      "allOf": [
+        { "$ref": "../resources/actor.json" },
+        {
+          "type": "object",
+          "required": ["id", "kind", "display_name", "created_at", "agent_runtime", "parent_actor_id"],
+          "properties": {
+            "kind": {
+              "const": "agent",
+              "description": "Heartbeat responses are only defined for agent sessions."
+            },
+            "agent_runtime": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Runtime identifier for the active agent session."
+            },
+            "parent_actor_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Human actor responsible for the active agent session."
+            }
+          }
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

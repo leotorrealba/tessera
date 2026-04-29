@@ -1,16 +1,16 @@
-# Tessera v0.1.2
+# Tessera v0.1.3
 
-**Status:** v0.1.2 — additive release. The v0.1.0 schema lock holds; v0.1.2 adds four actor-lifecycle verbs (`actor.register`, `actor.list`, `actor.get`, `actor.revoke_token`) without modifying any v0.1.0 schema. Additive changes (new optional fields, new verbs) remain permitted in v0.1.x; breaking changes require a v0.2.0 bump and a migration guide. Implementations should pin to a specific v0.1.x and follow [`CHANGELOG.md`](./CHANGELOG.md).
+**Status:** v0.1.3 — additive release. The v0.1.0 schema lock holds; v0.1.3 expands the actor-lifecycle surface by broadening `actor.register` to cover both human and agent branches and by adding `actor.heartbeat` and `actor.deactivate`, without modifying any v0.1.0 schema incompatibly. Additive changes (new optional fields, new verbs) remain permitted in v0.1.x; breaking changes require a v0.2.0 bump and a migration guide. Implementations should pin to a specific v0.1.x and follow [`CHANGELOG.md`](./CHANGELOG.md).
 
 ## TL;DR for implementers
 
-1. Install your DB schema for the five core resources (`actor`, `project`, `task`, `event`, `operation`). The shapes are defined in [`schemas/resources/`](./schemas/resources/).
-2. Implement the v0.1.0 verbs (`project.list`, `project.get`, `task.create`, `task.get`, `task.update_status`). Request/response shapes are in [`schemas/verbs/`](./schemas/verbs/).
-3. Make your implementation pass [`conformance/fixtures/`](./conformance/fixtures/). The fixtures form coherent project lookup and create → get → update_status narratives.
+1. Install your DB schema for the five core resources (`actor`, `project`, `task`, `event`, `operation`) and support the companion `AgentContext` response schema. The shapes are defined in [`schemas/resources/`](./schemas/resources/).
+2. Implement the pinned v0.1.x verb set you claim to support. For `v0.1.3`, that surface is `project.list`, `project.get`, `task.create`, `task.get`, `task.update_status`, `actor.register`, `actor.list`, `actor.get`, `actor.revoke_token`, `actor.heartbeat`, and `actor.deactivate`. Request/response shapes are in [`schemas/verbs/`](./schemas/verbs/).
+3. Make your implementation pass [`conformance/fixtures/`](./conformance/fixtures/). The fixtures form coherent project/task and actor-lifecycle narratives.
 
 ## Core resources
 
-Five resources, five JSON Schemas. All schemas use JSON Schema 2020-12.
+Five core resources plus one companion schema. All schemas use JSON Schema 2020-12.
 
 | Resource | Schema | Purpose |
 | --- | --- | --- |
@@ -21,7 +21,7 @@ Five resources, five JSON Schemas. All schemas use JSON Schema 2020-12.
 | **Operation** | [`schemas/resources/operation.json`](./schemas/resources/operation.json) | Server-side idempotency dedup record. 30-day minimum retention. |
 | **AgentContext** | [`schemas/resources/agent-context.json`](./schemas/resources/agent-context.json) | Structured response field on `task.create` and `task.get`. Caps at 32KB; over-cap responses set `truncated:true` with `next_page_tokens`. |
 
-## Verbs (v0.1)
+## Verbs (v0.1.3 surface)
 
 | Verb | Request | Response | Idempotent? |
 | --- | --- | --- | --- |
@@ -30,40 +30,45 @@ Five resources, five JSON Schemas. All schemas use JSON Schema 2020-12.
 | `task.create` | [req](./schemas/verbs/task.create.req.json) | [res](./schemas/verbs/task.create.res.json) | Yes (operation_id) |
 | `task.get` | [req](./schemas/verbs/task.get.req.json) | [res](./schemas/verbs/task.get.res.json) | N/A (read-only) |
 | `task.update_status` | [req](./schemas/verbs/task.update_status.req.json) | [res](./schemas/verbs/task.update_status.res.json) | Yes (operation_id) + concurrency-safe (if_match) |
-| `actor.register` (v0.1.2) | [req](./schemas/verbs/actor.register.req.json) | [res](./schemas/verbs/actor.register.res.json) | Yes (operation_id); replay redacts `token` |
+| `actor.register` (v0.1.3) | [req](./schemas/verbs/actor.register.req.json) | [res](./schemas/verbs/actor.register.res.json) | Yes (operation_id); replay redacts `token` |
 | `actor.list` (v0.1.2) | [req](./schemas/verbs/actor.list.req.json) | [res](./schemas/verbs/actor.list.res.json) | N/A (read-only) |
 | `actor.get` (v0.1.2) | [req](./schemas/verbs/actor.get.req.json) | [res](./schemas/verbs/actor.get.res.json) | N/A (read-only) |
 | `actor.revoke_token` (v0.1.2) | [req](./schemas/verbs/actor.revoke_token.req.json) | [res](./schemas/verbs/actor.revoke_token.res.json) | Yes (operation_id) + domain-idempotent |
+| `actor.heartbeat` (v0.1.3) | [req](./schemas/verbs/actor.heartbeat.req.json) | [res](./schemas/verbs/actor.heartbeat.res.json) | No `operation_id`; repeat calls refresh liveness for the same agent session |
+| `actor.deactivate` (v0.1.3) | [req](./schemas/verbs/actor.deactivate.req.json) | [res](./schemas/verbs/actor.deactivate.res.json) | Yes (operation_id) + domain-idempotent |
 
 `task.create` accepts either `project_id` or `repo_path`. Implementations MAY resolve `repo_path` through a repo-root mapping, a project table, or client-side detection such as `.sprino/project.id`; the response always contains the resolved `task.project_id`.
 
-## Actor lifecycle (v0.1.2)
+## Actor lifecycle (v0.1.3)
 
-The four actor-lifecycle verbs let implementations onboard humans, list participants for assignment UIs, and rotate credentials when one leaks. They were deferred from v0.1.0 until the read/write task surface had been exercised.
+The six actor-lifecycle verbs let implementations onboard humans and agent sessions, list participants for assignment UIs, refresh agent liveness metadata, and end or rotate credentials without transport-specific assumptions.
 
-- **`actor.register`** mints a new human actor and returns the plaintext credential ONCE. v0.1.2 restricts `kind` to `"human"`. Agent registration (with `parent_actor_id` and runtime metadata) is intentionally deferred until a capabilities/spawn model lands — accepting an agent kind today and ignoring `parent_actor_id` would be worse ergonomics than rejecting it.
+- **`actor.register`** mints a new actor and returns the plaintext credential ONCE. The request supports both human and agent branches. Human registration remains the baseline path. Agent registration MUST provide `agent_runtime` and `parent_actor_id`; the `parent_actor_id` MUST resolve to an active human actor responsible for the agent spawn. Idempotent replay with the same `operation_id` redacts the `token` field for both branches.
 - **`actor.list`** returns an envelope object `{actors: [...]}` with an optional `kind` filter. Bare-array responses are not used in Tessera so future pagination fields can land additively.
-- **`actor.get`** fetches a single actor by id. Returns 404 `not_found` when absent.
-- **`actor.revoke_token`** invalidates the actor's active credential. Idempotent both via `operation_id` (replay returns the cached response) and at the domain level (re-revoking an already-revoked actor returns the same `{actor}` shape with no error and writes no new event). Implementations MUST guard against revoking the last active human credential and MUST return error code `last_admin_protected` (HTTP 409) in that case — the system requires at least one human able to authenticate.
+- **`actor.get`** fetches a single actor by id. Missing actors return a `not_found` protocol error; HTTP transports commonly map that to `404`.
+- **`actor.revoke_token`** invalidates the active credential for a human actor. It remains the credential-rotation primitive for humans. The verb is idempotent both via `operation_id` (replay returns the cached response) and at the domain level (re-revoking an already-revoked human returns the same `{actor}` shape with no error and writes no new event). Implementations MUST guard against revoking the last active human credential and MUST return error code `last_admin_protected` when the call would remove the last active human able to authenticate; HTTP transports commonly map that guard to `409 Conflict`.
+- **`actor.heartbeat`** refreshes server-side liveness metadata for an authenticated agent session without rotating or replacing that session credential. The v0.1.3 request identifies the session by `actor_id` only; this verb does not use `operation_id`. Repeated calls refresh liveness metadata and MUST NOT mint credentials or mutate runtime or parent-linkage metadata.
+- **`actor.deactivate`** revokes or ends an authenticated agent session credential. It is idempotent via `operation_id` and domain-idempotent when the session is already inactive. This is not the human `last_admin_protected` guard path; that protection remains specific to `actor.revoke_token`.
 
 > **Token recovery: there isn't one.**
 >
-> The plaintext token is returned exactly once on `actor.register`. On idempotent replay (same `operation_id`) the response is `{actor}` only — the `token` field is omitted. There is intentionally no recovery path. If a token is lost, an authenticated holder of an active credential (typically an admin human) MUST call `actor.revoke_token` and then `actor.register` a fresh actor. This keeps Tessera's credential model honest: no plaintext-at-rest, no "show me the token again" verb, no parallel reset flow to audit.
+> The plaintext token is returned exactly once on `actor.register`, whether the registered actor is human or agent. On idempotent replay (same `operation_id`) the response is `{actor}` only — the `token` field is omitted. There is intentionally no recovery path. If a human token is lost, an authenticated holder of an active human credential MUST call `actor.revoke_token` and then `actor.register` a fresh human actor. If an agent session token is lost, the responsible active human MUST end that agent session with `actor.deactivate` and then `actor.register` a fresh agent session. This keeps Tessera's credential model honest: no plaintext-at-rest, no "show me the token again" verb, no parallel reset flow to audit.
 
-`actor.revoke_token` is the in-protocol primitive for credential rotation. A more ergonomic single-call rotate verb (revoke + re-register in one round-trip) is intentionally NOT in v0.1.2 — implementations are free to expose one as a non-Tessera HTTP extension on top of these primitives.
+`actor.revoke_token` is the in-protocol primitive for human credential rotation. `actor.deactivate` is the in-protocol primitive for ending an agent session credential. A more ergonomic single-call rotate verb is intentionally not part of the v0.1.3 surface; implementations are free to expose one as a non-Tessera extension on top of these primitives.
 
 ## Idempotency rules (`operation_id`)
 
 - **Format:** UUIDv7 supplied by the client. Implementations MUST NOT generate operation_ids server-side.
 - **Retention:** 30 days minimum. After expiry, retries return `410 Gone`.
 - **Replay semantics:**
-  - Same `operation_id` + same `request_hash` (SHA-256 of canonical JSON) → return the cached response verbatim.
+  - Same `operation_id` + same `request_hash` (SHA-256 of canonical JSON) → return the cached response for that operation. By default this is the original payload verbatim; verbs MAY define explicitly documented replay-safe redactions for sensitive fields. `actor.register` is the v0.1.3 example: replay returns `{actor}` with `token` omitted.
   - Same `operation_id` + different `request_hash` → return `409 Conflict` with the original cached payload.
 - **Server cleanup:** Implementations SHOULD purge expired operations on a daily cadence. The protocol does not mandate a specific schedule.
 
 ## Optimistic concurrency (`version`)
 
-- Every mutating verb takes `if_match: <version>`.
+- `if_match: <version>` applies only to verbs that mutate an existing versioned task record.
+- In the pinned v0.1.3 contract, that means `task.update_status`. It does not apply to `actor.register`, `actor.heartbeat`, or `actor.deactivate`.
 - On match: server writes the event, increments the version, returns the new task and event with status `200 OK`.
 - On mismatch: server returns `409 Conflict` with the SERVER'S current task body (no new event written, no version increment).
 - Reasoning: AI agents tend not to pause to check state. Last-write-wins is a footgun.
@@ -103,9 +108,12 @@ An implementation is **Tessera v0.1.x conformant** when:
    - Implementation-specific projection metadata (e.g. database row IDs)
      that the schemas do not require.
 
-2. **All five v0.1 verbs are implemented** with the request/response
-   shapes in [`schemas/verbs/`](./schemas/verbs/): `project.list`,
-   `project.get`, `task.create`, `task.get`, `task.update_status`.
+2. **All verbs for the pinned v0.1.x target are implemented** with the
+   request/response shapes in [`schemas/verbs/`](./schemas/verbs/). For
+   `v0.1.3`, that means `project.list`, `project.get`, `task.create`,
+   `task.get`, `task.update_status`, `actor.register`, `actor.list`,
+   `actor.get`, `actor.revoke_token`, `actor.heartbeat`, and
+   `actor.deactivate`.
 
 3. **Idempotency, concurrency, and event-log rules** from this document
    are enforced (operation replay, 409 on `operation_id` payload
@@ -139,8 +147,8 @@ following clarifications.
 
 | Change | Bump |
 | --- | --- |
-| Adding a new optional field on a request or response | MINOR |
-| Adding a new verb | MINOR |
+| Adding a new optional field on a request or response | PATCH within the frozen `v0.1.x` line; MINOR otherwise |
+| Adding a new verb | PATCH within the frozen `v0.1.x` line; MINOR otherwise |
 | Adding a new conformance fixture (covering existing behavior) | PATCH |
 | Clarifying or restating existing rules without changing them | PATCH |
 | Renaming or removing a field | MAJOR |
@@ -246,16 +254,12 @@ implementation:
 
 - Event log replay verbs (`events.list`).
 - Project mutation verbs (`project.create`, `project.update`).
-- Agent registration (`actor.register` with `kind: "agent"` and
-  `parent_actor_id`). Deferred until a capabilities/spawn model defines
-  who can register an agent and what `parent_actor_id` enforces. v0.1.2
-  ships humans-only.
 - Audit log of actor-lifecycle events (`actor_events`). Deferred to
   v0.2 alongside the broader event-log expansion.
 - Comments, labels, search, webhooks, sprints (re-evaluated as universal
   vs implementation-specific in v0.2 design).
 
-These will land additively in `v0.1.x` minor releases (no breaking
+These will land additively in future `v0.1.x` releases (no breaking
 change) once the design is validated.
 
 ## Reference implementation

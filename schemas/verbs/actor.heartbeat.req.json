@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/actor.heartbeat.req.json",
+  "title": "actor.heartbeat — Request",
+  "description": "Record liveness for an active agent session and return the canonical actor envelope. This verb is for active agent sessions only. It refreshes liveness metadata server-side, but it updates liveness only: it MUST NOT mint or rotate credentials and MUST NOT change runtime or parent-linkage metadata.",
+  "type": "object",
+  "required": ["actor_id"],
+  "properties": {
+    "actor_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID of the active agent session whose liveness is being refreshed. Human actors are out of scope for this verb."
+    }
+  },
+  "additionalProperties": false
+}
