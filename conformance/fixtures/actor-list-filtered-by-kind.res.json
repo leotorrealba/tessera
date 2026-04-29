@@ -1,5 +1,6 @@
 {
   "_meta": {
+    "preconditions": "actor-register-happy already executed in this test session, so the Maintainer and Ada Lovelace both exist as human actors.",
     "expected_behavior": "With kind=human filter, only actors with kind=human appear in the response."
   },
   "actors": [
@@ -10,6 +11,14 @@
       "agent_runtime": null,
       "parent_actor_id": null,
       "created_at": "2026-04-27T12:00:00Z"
+    },
+    {
+      "id": "018c3e7a-0001-7000-8000-000000000010",
+      "kind": "human",
+      "display_name": "Ada Lovelace",
+      "agent_runtime": null,
+      "parent_actor_id": null,
+      "created_at": "2026-04-29T10:00:00Z"
     }
   ]
 }

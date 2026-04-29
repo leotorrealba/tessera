@@ -2,20 +2,71 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/actor.register.req.json",
   "title": "actor.register — Request",
-  "description": "Register a new human actor and mint a credential. v0.1.2 restricts `kind` to `human` only — agent registration is intentionally deferred until a capabilities/spawn model is defined. Idempotent via operation_id (same operation_id replays the original response shape; see actor.register.res.json for the redaction rule). The plaintext token is returned exactly once on first call.",
-  "type": "object",
-  "required": ["operation_id", "display_name", "kind"],
-  "properties": {
-    "operation_id": {
-      "type": "string",
-      "format": "uuid",
-      "description": "UUIDv7 (time-ordered). Same operation_id replays the cached response (with the token field redacted). Same operation_id with a different request body returns 409 Conflict."
+  "description": "Register a new actor and mint a credential. This schema preserves the existing v0.1.2 human request shape unchanged and additively allows agent registration. Idempotent via operation_id: the same operation_id replays the original response shape, preserving the token-redaction exception so replay returns the original actor envelope without reissuing the plaintext token; the same operation_id with a different request body returns a conflict. The plaintext token is returned exactly once on the first successful call.",
+  "oneOf": [
+    {
+      "title": "Human Registration",
+      "description": "Registers a human actor. This branch is the unchanged v0.1.2 contract.",
+      "type": "object",
+      "required": ["operation_id", "display_name", "kind"],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "UUIDv7 (time-ordered) recommended. Same operation_id replays the cached response. Same operation_id with a different request body returns 409 Conflict."
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Human-readable label for the actor."
+        },
+        "kind": {
+          "const": "human",
+          "description": "Registers a human actor."
+        }
+      },
+      "additionalProperties": false
     },
-    "display_name": { "type": "string", "minLength": 1, "maxLength": 200 },
-    "kind": {
-      "enum": ["human"],
-      "description": "v0.1.2 only allows `human`. Agent registration (with parent_actor_id and runtime metadata) is deferred until a capabilities model lands."
+    {
+      "title": "Agent Registration",
+      "description": "Registers an agent actor linked to the active human actor responsible for spawning the session. Caller authorization is transport- and implementation-layer policy, but the protocol itself requires this human-to-agent linkage in the request.",
+      "type": "object",
+      "required": [
+        "operation_id",
+        "display_name",
+        "kind",
+        "agent_runtime",
+        "parent_actor_id"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "UUIDv7 (time-ordered) recommended. Same operation_id replays the cached response. Same operation_id with a different request body returns 409 Conflict."
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Human-readable label for the agent session."
+        },
+        "kind": {
+          "const": "agent",
+          "description": "Registers an agent actor."
+        },
+        "agent_runtime": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Stable identifier for the runtime hosting the agent session, such as `claude-code` or `cursor`."
+        },
+        "parent_actor_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "UUID of the active human actor responsible for spawning this agent session. Implementations MUST reject a parent reference that does not resolve to an active human actor. The caller's authorization to create the session is enforced outside this schema, but the protocol requires the linkage to be supplied here."
+        }
+      },
+      "additionalProperties": false
     }
-  },
-  "additionalProperties": false
+  ]
 }

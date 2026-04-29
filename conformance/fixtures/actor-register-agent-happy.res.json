@@ -1,0 +1,15 @@
+{
+  "_meta": {
+    "preconditions": "Actor 018c3e7a-0001-7000-8000-000000000001 exists as an active human actor able to spawn an agent session.",
+    "expected_behavior": "First call for this operation_id. Implementation MUST mint a new agent actor linked to the spawning human via `parent_actor_id`, return BOTH `actor` and `token`, and persist the operation cache so a replay returns the redacted shape with no `token` field. Token redaction parity with human registration is required."
+  },
+  "actor": {
+    "id": "018c3e7a-0001-7000-8000-000000000020",
+    "kind": "agent",
+    "display_name": "Claude Code (session)",
+    "agent_runtime": "claude-code",
+    "parent_actor_id": "018c3e7a-0001-7000-8000-000000000001",
+    "created_at": "2026-04-29T11:30:00Z"
+  },
+  "token": "tessera_live_6c1d8f4a2b7e9c0d3f5a1b8e4c2d7f9a"
+}

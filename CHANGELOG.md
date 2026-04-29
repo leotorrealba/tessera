@@ -11,6 +11,45 @@ upgrade notes when bumping.
 
 ---
 
+## [v0.1.3] — 2026-04-29 — Agent registration + agent-session lifecycle
+
+**Status: additive. No breaking changes; the v0.1.0 schema lock holds.**
+
+### Added
+- `actor.register` now supports both human and agent registration.
+  Agent registration requires `agent_runtime` and `parent_actor_id`, and
+  `parent_actor_id` must resolve to an active human actor responsible
+  for the spawn.
+- Two new actor-lifecycle verbs:
+  - `actor.heartbeat` — agent-session verb that refreshes server-side
+    liveness metadata without rotating the session credential.
+  - `actor.deactivate` — agent-session verb that revokes or ends that
+    session credential. Idempotent via `operation_id` and
+    domain-idempotent when the session is already inactive.
+- Additive schema updates for the expanded `actor.register` request /
+  response branches and for the paired `actor.heartbeat` /
+  `actor.deactivate` req/res files.
+- Additive conformance fixtures covering agent registration, agent
+  heartbeat, and agent deactivation flows.
+
+### Clarified
+- Token redaction on idempotent replay still applies to
+  `actor.register` for both human and agent branches: the plaintext
+  `token` is returned exactly once for a given `operation_id`, and
+  replay returns `{actor}` without `token`.
+- `actor.revoke_token` remains the credential-rotation primitive for
+  humans, including the `last_admin_protected` guard path.
+- `actor.deactivate` is not the human last-admin path; it applies to
+  agent sessions only.
+
+### Unchanged
+- Existing task/project verbs and actor read verbs.
+- The human-only `actor.revoke_token` contract from v0.1.2, aside from
+  the clarified division of responsibility between human rotation and
+  agent-session deactivation.
+
+---
+
 ## [v0.1.2] — 2026-04-29 — Actor lifecycle verbs
 
 **Status: minor. Additive only. No breaking changes; the v0.1.0 schema
@@ -54,7 +93,7 @@ fixtures (`actor-register-happy.res.json` MUST contain `token`;
 `actor-register-operation-replay.res.json` MUST NOT). There is
 intentionally no token-recovery path — if a token is lost, the holder of
 an active credential MUST `actor.revoke_token` and `actor.register` a
-fresh actor. See [SPEC.md § Actor lifecycle](./SPEC.md#actor-lifecycle-v012).
+fresh actor. See [SPEC.md § Actor lifecycle](./SPEC.md#actor-lifecycle-v013).
 
 ### Intentional non-additions
 - `parent_actor_id` is NOT in the `actor.register` request body. The
@@ -172,8 +211,9 @@ zero changes.
 ## [v0.0.1] — First concrete schemas
 
 ### Added
-- Six resource schemas under `schemas/resources/`: `actor`, `project`,
-  `task`, `event`, `operation`, `agent-context`.
+- Five core resource schemas plus the `agent-context` companion schema
+  under `schemas/resources/`: `actor`, `project`, `task`, `event`,
+  `operation`, `agent-context`.
 - Three verbs under `schemas/verbs/`: `task.create`, `task.get`,
   `task.update_status`.
 - Three happy-path conformance fixtures.
@@ -190,6 +230,7 @@ zero changes.
 
 ---
 
+[v0.1.3]: https://github.com/leotorrealba/tessera/compare/v0.1.2...v0.1.3
 [v0.1.2]: https://github.com/leotorrealba/tessera/compare/v0.1.1...v0.1.2
 [v0.1.1]: https://github.com/leotorrealba/tessera/compare/v0.1.0...v0.1.1
 [v0.1.0]: https://github.com/leotorrealba/tessera/compare/v0.0.2...v0.1.0

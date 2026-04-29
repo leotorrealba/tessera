@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/actor.deactivate.req.json",
+  "title": "actor.deactivate — Request",
+  "description": "Deactivate an agent session credential. This verb targets agent sessions only: it revokes and ends the targeted agent session credential without erasing runtime metadata or parent-child traceability. Idempotent via operation_id: the same operation_id replays the cached response; the same operation_id with a different request body returns a conflict. The verb is also domain-idempotent for an already-deactivated agent session. The last-active-human protection from actor.revoke_token does not apply here because this verb is not used for human credentials.",
+  "type": "object",
+  "required": ["operation_id", "actor_id"],
+  "properties": {
+    "operation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUIDv7 (time-ordered) recommended. Same operation_id replays the cached response. Same operation_id with a different request body returns 409 Conflict."
+    },
+    "actor_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID of the agent session to deactivate. Human credentials are out of scope for this verb."
+    }
+  },
+  "additionalProperties": false
+}

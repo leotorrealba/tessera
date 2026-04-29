@@ -1,0 +1,7 @@
+{
+  "operation_id": "018c3e7a-0005-7000-8000-000000000031",
+  "display_name": "Cursor Agent (session)",
+  "kind": "agent",
+  "agent_runtime": "cursor",
+  "parent_actor_id": "018c3e7a-0001-7000-8000-000000000020"
+}

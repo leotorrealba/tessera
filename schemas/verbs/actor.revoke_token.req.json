@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/actor.revoke_token.req.json",
   "title": "actor.revoke_token — Request",
-  "description": "Invalidate the active credential for the given actor. Idempotent via operation_id; revoking an already-revoked actor returns the same response shape (no error). Implementations MUST guard against revoking the last active human credential and MUST return error code `last_admin_protected` (HTTP 409) in that case — the system requires at least one human able to authenticate.",
+  "description": "Invalidate the active credential for the given human actor. Idempotent via operation_id; revoking an already-revoked human credential returns the same response shape (no error). This verb is the human credential-rotation path; agent-session credentials use actor.deactivate instead. Implementations MUST guard against revoking the last active human credential and MUST return error code `last_admin_protected` (HTTP 409) in that case — the system requires at least one human able to authenticate.",
   "type": "object",
   "required": ["operation_id", "actor_id"],
   "properties": {

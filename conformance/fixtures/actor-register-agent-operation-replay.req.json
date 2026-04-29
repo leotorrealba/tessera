@@ -1,0 +1,7 @@
+{
+  "operation_id": "018c3e7a-0005-7000-8000-000000000030",
+  "display_name": "Claude Code (session)",
+  "kind": "agent",
+  "agent_runtime": "claude-code",
+  "parent_actor_id": "018c3e7a-0001-7000-8000-000000000001"
+}

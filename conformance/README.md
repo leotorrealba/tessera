@@ -2,7 +2,7 @@
 
 This directory holds paired request/response fixtures that any Tessera
 implementation MUST pass to claim Tessera support. The pinned target
-version is in [`SPEC.md`](../SPEC.md) (currently v0.1.2).
+version is in [`SPEC.md`](../SPEC.md) (currently v0.1.3).
 
 ## Layout
 
@@ -25,18 +25,24 @@ conformance/
     # Validation errors
     ├── task-create-invalid-uuid.{req,res}.json         # malformed operation_id → 400
     └── task-create-missing-required-field.{req,res}.json  # omitted title → 400
-    # Actor lifecycle (v0.1.2)
+    # Actor lifecycle (v0.1.2 baseline + v0.1.3 expansion)
     ├── actor-register-happy.{req,res}.json             # mints actor, returns {actor, token}
     ├── actor-register-operation-replay.{req,res}.json  # same op_id → {actor} ONLY (token redacted)
-    ├── actor-register-invalid-kind.{req,res}.json      # kind: "agent" → 400 (humans-only in v0.1.2)
+    ├── actor-register-invalid-kind.{req,res}.json      # incomplete agent registration → 400 validation_error
     ├── actor-register-validation-error.{req,res}.json  # missing display_name → 400
+    ├── actor-register-agent-happy.{req,res}.json       # agent register → {actor, token}
+    ├── actor-register-agent-operation-replay.{req,res}.json  # same op_id → {actor} ONLY (token redacted)
+    ├── actor-register-agent-invalid-parent.{req,res}.json  # non-human parent_actor_id → 400
     ├── actor-list-happy.{req,res}.json                 # envelope {actors: [...]}
     ├── actor-list-filtered-by-kind.{req,res}.json      # kind=human filter
     ├── actor-get-happy.{req,res}.json                  # returns {actor}
     ├── actor-get-not-found.{req,res}.json              # unknown actor_id → 404 not_found
     ├── actor-revoke-happy.{req,res}.json               # returns {actor}, no token field
     ├── actor-revoke-already-revoked.{req,res}.json     # second revoke → idempotent {actor}
-    └── actor-revoke-not-found.{req,res}.json           # unknown actor_id → 404 not_found
+    ├── actor-revoke-not-found.{req,res}.json           # unknown actor_id → 404 not_found
+    ├── actor-heartbeat-happy.{req,res}.json            # actor_id-only liveness refresh for an agent session
+    ├── actor-deactivate-happy.{req,res}.json           # ends agent-session credential
+    └── actor-deactivate-already-inactive.{req,res}.json  # second deactivate → domain-idempotent {actor}
 ```
 
 Each fixture is a pair: a `*.req.json` file with the verb input, and a
@@ -102,6 +108,25 @@ documentation, not protocol.
 
    # Independent narrative — separate task with large agent_context
    task-get-truncated                         # truncated:true + next_page_tokens
+
+   # Actor lifecycle baseline
+   actor-register-happy
+   actor-register-operation-replay
+   actor-register-invalid-kind
+   actor-register-validation-error
+   actor-register-agent-happy
+   actor-register-agent-operation-replay
+   actor-register-agent-invalid-parent
+   actor-list-happy
+   actor-list-filtered-by-kind
+   actor-get-happy
+   actor-get-not-found
+   actor-heartbeat-happy
+   actor-deactivate-happy
+   actor-deactivate-already-inactive
+   actor-revoke-happy
+   actor-revoke-already-revoked
+   actor-revoke-not-found
    ```
 
 3. **Compare actual response to expected** with these allowed
@@ -127,7 +152,7 @@ documentation, not protocol.
 
 ## What "passes" means
 
-An implementation passes Tessera v0.1.0 if:
+An implementation passes the pinned Tessera v0.1.x target if:
 
 - All happy-path fixture inputs validate against
   `schemas/verbs/<verb>.req.json`.
@@ -148,16 +173,13 @@ An implementation passes Tessera v0.1.0 if:
 - Operation expiry (after 30 days → 410 Gone). Long-running scenario,
   not easily expressible in a sub-second test fixture.
 - Project mutation verbs (`project.create`, `project.update`).
-- Agent registration (`actor.register` with `kind: "agent"`). v0.1.2
-  ships humans-only; agent registration returns alongside a
-  capabilities/spawn model.
 - `actor_events` audit log (deferred to v0.2).
 - `last_admin_protected` system-precondition fixture for
-  `actor.revoke_token` — this is enforced by spec text in v0.1.2 but
+  `actor.revoke_token` — this is enforced by spec text in v0.1.3 but
   not yet wired into a deterministic fixture (it depends on
   system-wide credential state, not a single request shape).
 
-These will land additively in `v0.1.x` minor releases.
+These will land additively in future `v0.1.x` releases.
 
 ## Reference implementation
 

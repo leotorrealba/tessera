@@ -2,11 +2,65 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/actor.register.res.json",
   "title": "actor.register — Response",
-  "description": "201 Created on first call: returns BOTH `actor` and `token`. The plaintext `token` is shown exactly once. On idempotent replay (same operation_id + same request_hash) the response MUST OMIT the `token` field — only `actor` is returned. There is intentionally no token-recovery path: if a token is lost, an authenticated holder of an active credential MUST call actor.revoke_token and then actor.register a fresh actor. `token` is therefore not in `required`; conformant implementations enforce its presence on first call and its absence on replay via the paired fixtures (actor-register-happy and actor-register-operation-replay).",
+  "description": "201 Created on first call: returns BOTH `actor` and `token` for the newly registered human or agent actor. The plaintext `token` is shown exactly once. On idempotent replay (same operation_id + same request_hash) the response MUST OMIT the `token` field and return only `actor`; replay preserves the token-redaction exception and MUST NOT reissue the plaintext token. There is intentionally no token-recovery path: if a human token is lost, an authenticated holder of an active human credential MUST call actor.revoke_token and then actor.register a fresh human actor. If an agent-session token is lost, the responsible active human MUST call actor.deactivate and then actor.register a fresh agent session. `token` is therefore not in `required`; conformant implementations enforce its presence on first call and its absence on replay via the paired registration fixtures.",
   "type": "object",
   "required": ["actor"],
   "properties": {
-    "actor": { "$ref": "../resources/actor.json" },
+    "actor": {
+      "description": "Canonical actor envelope for the newly registered actor. Human registrations return the existing human shape. Agent registrations MUST return an agent actor with runtime and parent linkage populated.",
+      "oneOf": [
+        {
+          "title": "Human Actor",
+          "allOf": [
+            { "$ref": "../resources/actor.json" },
+            {
+              "type": "object",
+              "required": ["id", "kind", "display_name", "created_at", "agent_runtime", "parent_actor_id"],
+              "properties": {
+                "kind": {
+                  "const": "human",
+                  "description": "Human registration responses return a human actor."
+                },
+                "agent_runtime": {
+                  "type": "null",
+                  "description": "Humans do not have an agent runtime."
+                },
+                "parent_actor_id": {
+                  "type": "null",
+                  "description": "Humans do not have a parent actor linkage."
+                }
+              }
+            }
+          ]
+        },
+        {
+          "title": "Agent Actor",
+          "allOf": [
+            { "$ref": "../resources/actor.json" },
+            {
+              "type": "object",
+              "required": ["id", "kind", "display_name", "created_at", "agent_runtime", "parent_actor_id"],
+              "properties": {
+                "kind": {
+                  "const": "agent",
+                  "description": "Agent registration responses return an agent actor."
+                },
+                "agent_runtime": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Runtime identifier for the registered agent session."
+                },
+                "parent_actor_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Human actor responsible for spawning the registered agent session."
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
     "token": {
       "type": "string",
       "minLength": 32,

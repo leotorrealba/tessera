@@ -1,0 +1,14 @@
+{
+  "_meta": {
+    "preconditions": "actor-heartbeat-happy already executed: actor 018c3e7a-0001-7000-8000-000000000020 exists as an active agent session. The caller is an authorized human acting on the agent's lifecycle, not the deactivated agent itself.",
+    "expected_behavior": "Returns the actor whose agent session was deactivated. The response carries no token field. Parent-child traceability and runtime metadata remain queryable after deactivation."
+  },
+  "actor": {
+    "id": "018c3e7a-0001-7000-8000-000000000020",
+    "kind": "agent",
+    "display_name": "Claude Code (session)",
+    "agent_runtime": "claude-code",
+    "parent_actor_id": "018c3e7a-0001-7000-8000-000000000001",
+    "created_at": "2026-04-29T11:30:00Z"
+  }
+}

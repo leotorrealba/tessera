@@ -4,7 +4,7 @@
 
 The name comes from Latin *tessera*: a small mosaic tile, and the wooden tile Roman soldiers carried with their unit's assignment and orders. The metaphor is literal — every task is a tessera, and the project is the mosaic that emerges when many of them are placed in coordination.
 
-> **Status: v0.1.2 (additive — actor lifecycle).** Five core resources locked since v0.1.0; nine verbs now (five task/project + four actor-lifecycle). Schemas evolve additively only within v0.1.x. Implementations should pin to a specific v0.1.x and follow the [changelog](./CHANGELOG.md).
+> **Status: v0.1.3 (additive — actor lifecycle expansion).** Five core resources locked since v0.1.0; eleven verbs now (five task/project + six actor-lifecycle). Schemas and conformance fixtures evolve additively only within v0.1.x. Implementations should pin to a specific v0.1.x and follow the [changelog](./CHANGELOG.md).
 
 ## Two reading paths
 
@@ -16,14 +16,14 @@ The name comes from Latin *tessera*: a small mosaic tile, and the wooden tile Ro
 
 ## What Tessera defines
 
-A small set of resources that any AI-native project management tool needs in 2026:
+A small set of five core resources plus one companion schema that any AI-native project management tool needs in 2026:
 
 - **Tasks** — units of work, with status, assignee, and version (for optimistic concurrency).
 - **Projects** — scope boundaries. Tasks live in projects.
 - **Actors** — humans and AI agents are first-class participants. Schema-level distinction, not a `user` table with a flag.
 - **Events** — append-only log of every state change. Source of truth; materialized state is a projection.
 - **Operations** — idempotency keys (UUIDv7) supplied by the client, with 30-day retention and 409-on-payload-mismatch semantics.
-- **Agent Context** — structured response field on `task.get` so agents start with full state instead of re-explaining.
+- **Agent Context** — companion response schema on `task.create` and `task.get` so agents start with full state instead of re-explaining.
 
 Specification: [SPEC.md](./SPEC.md). JSON Schemas and conformance fixtures evolve additively in v0.1.x.
 
@@ -41,17 +41,18 @@ The two are intentionally decoupled. Tessera is MIT-licensed because protocols b
 
 ## Conformance
 
-A `conformance/` directory will hold paired JSON request/response fixtures that any Tessera implementation MUST pass. This is the artifact a second implementer needs. If you want to know whether a tool "supports Tessera," the answer is: does it pass the fixture suite?
+The `conformance/` directory holds paired JSON request/response fixtures that any Tessera implementation MUST pass. This is the artifact a second implementer needs. If you want to know whether a tool "supports Tessera," the answer is: does it pass the fixture suite?
 
 ## Roadmap
 
 - **v0.0.0** ✅ shipped — bootstrap repo, license, founding-story README.
-- **v0.0.1** ✅ shipped — three verbs (`task.create`, `task.get`, `task.update_status`), JSON Schemas for the six core resources, three happy-path conformance fixtures.
+- **v0.0.1** ✅ shipped — three verbs (`task.create`, `task.get`, `task.update_status`), JSON Schemas for the five core resources plus the `AgentContext` schema, three happy-path conformance fixtures.
 - **v0.0.2** ✅ shipped — project read verbs (`project.list`, `project.get`) and `task.create` repo_path resolution for multi-repo dogfooding.
 - **v0.1.0** ✅ shipped — schema stabilization milestone. Versioning policy, deprecation policy, migration guide template, expanded conformance suite (concurrency conflicts, idempotency edge cases, agent_context truncation, validation errors). See [CHANGELOG.md](./CHANGELOG.md).
 - **v0.1.1** ✅ shipped — conformance fixture error-code alignment with the reference implementation. Schemas unchanged.
-- **v0.1.2** ✅ shipped — actor lifecycle: `actor.register` (humans only), `actor.list`, `actor.get`, `actor.revoke_token`. Plaintext token returned exactly once; idempotent replay redacts the token. Agent registration and `actor_events` audit log remain deferred.
-- **v0.1.x** — additive: `events.list`, agent registration (with capabilities/spawn model), `project.create`, `project.update` once exercised by at least one third-party implementation.
+- **v0.1.2** ✅ shipped — actor lifecycle baseline: `actor.register` (humans only), `actor.list`, `actor.get`, `actor.revoke_token`. Plaintext token returned exactly once; idempotent replay redacts the token.
+- **v0.1.3** ✅ shipped — additive actor lifecycle expansion: `actor.register` now supports both human and agent registration; agent registration requires `agent_runtime` and `parent_actor_id`, and the parent must resolve to an active human actor responsible for spawn. Added `actor.heartbeat` for agent-session liveness refresh without credential rotation and `actor.deactivate` for domain-idempotent agent-session credential end/revocation. Human `actor.revoke_token` remains the credential-rotation primitive for humans. Token redaction on idempotent replay still applies to both human and agent registration.
+- **v0.1.x** — additive: `events.list`, `project.create`, `project.update`, and actor-lifecycle audit log (`actor_events`) once exercised by at least one third-party implementation.
 - **v0.2.0** — comments, labels, search, webhooks, sprints (re-evaluated as universal vs implementation-specific).
 - **v1.0.0** — when there is a second implementation.
 

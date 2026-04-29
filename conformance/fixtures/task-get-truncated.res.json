@@ -8,7 +8,7 @@
     "project_id": "018c3e7a-0002-7000-8000-000000000001",
     "title": "Long-running task with extensive agent context",
     "description": "Used for the truncation conformance fixture.",
-    "status": "in_progress",
+    "status": "doing",
     "assignee_id": null,
     "created_by": "018c3e7a-0001-7000-8000-000000000001",
     "version": 5,
