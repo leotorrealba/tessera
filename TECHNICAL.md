@@ -19,9 +19,11 @@ Concretely, Tessera v0.1.x is:
 
 - **Six JSON Schemas** for the core resources: `actor`, `project`,
   `task`, `event`, `operation`, and `agent_context`.
-- **Five verbs** with paired request/response JSON Schemas:
-  `project.list`, `project.get`, `task.create`, `task.get`,
-  `task.update_status`.
+- **Nine verbs** with paired request/response JSON Schemas — five
+  task/project verbs (`project.list`, `project.get`, `task.create`,
+  `task.get`, `task.update_status`) and four actor-lifecycle verbs
+  added in v0.1.2 (`actor.register`, `actor.list`, `actor.get`,
+  `actor.revoke_token`).
 - **A conformance fixture suite** — paired `*.req.json` / `*.res.json`
   files that any conforming implementation MUST replay correctly.
 - **A set of semantic rules** (event-log append-only, idempotency via
@@ -189,6 +191,37 @@ covered by the deprecation policy.
 
 This is what lets agents handle errors without parsing prose.
 
+### 5f. Actor lifecycle: token-redaction and last-admin guard (v0.1.2)
+
+The four actor-lifecycle verbs added in v0.1.2 carry two semantic
+rules beyond the generic idempotency contract.
+
+**Plaintext token returned exactly once.** `actor.register` returns
+`{ actor, token }` on its first successful call for a given
+`operation_id`. Idempotent replay (same `operation_id` + same request
+body) returns `{ actor }` only — the `token` field MUST NOT appear.
+The plaintext is unrecoverable from the operation cache; a caller
+that lost it must `actor.revoke_token` and re-register. This makes
+"the secret was shown once" a property the protocol enforces, not a
+client-side discipline.
+
+**`last_admin_protected` (HTTP 409) on `actor.revoke_token`.** When
+revoking the actor's active token would leave the system with zero
+active human credentials, implementations MUST refuse with the
+`last_admin_protected` error code. This is a system-wide
+precondition (not a request-shape error) — it cannot be detected by
+schema validation alone, and it is the difference between "we lock
+ourselves out" and "we don't" for any deployment without an
+out-of-band admin path. There is no fixture for it in v0.1.2 because
+fixtures exercise per-request semantics; conformance is asserted by
+the SPEC text and the reference implementation's integration tests.
+
+The lifecycle is intentionally narrow: humans only (agents are still
+declared at deploy time), no re-activation of revoked tokens (mint a
+fresh one instead), and no `actor.update` verb (display name and
+metadata are immutable post-registration in v0.1.2 — this restriction
+will be lifted in a future minor once the use case is exercised).
+
 ---
 
 ## 6. Conformance
@@ -215,7 +248,7 @@ An implementation is **Tessera v0.1.x conformant** when:
    All other response fields — including `task.id` — must match the
    fixture exactly, even when server-generated. See
    [`conformance/README.md`](./conformance/README.md) for the full rules.
-2. All five v0.1 verbs are implemented per [`schemas/verbs/`](./schemas/verbs/).
+2. All nine v0.1.x verbs are implemented per [`schemas/verbs/`](./schemas/verbs/).
 3. The semantic rules in section 5 are enforced (operation replay,
    `409 Conflict` on `operation_id` payload mismatch, `410 Gone` on
    expired operations, optimistic concurrency via `if_match`/`version`,
@@ -316,7 +349,8 @@ downgrading.
 | `v0.0.2` | ✅ shipped | Project read verbs + repo_path resolution. |
 | `v0.1.0` | ✅ shipped | Schema stabilization. Versioning + deprecation policy. Expanded fixtures. |
 | `v0.1.1` | ✅ shipped | Fixture error-code alignment with reference impl. |
-| `v0.1.x` | open | Additive: `events.list`, `actor.register`, `actor.list`, `project.create`, `project.update`. Land once exercised by a third-party implementation. |
+| `v0.1.2` | ✅ shipped | Actor lifecycle verbs (`actor.register`, `actor.list`, `actor.get`, `actor.revoke_token`). Plaintext-token-once redaction rule. `last_admin_protected` error code. |
+| `v0.1.x` | open | Additive: agent registration, `actor_events` audit log, `events.list`, `project.create`/`update`. Land once exercised by a third-party implementation. |
 | `v0.2.0` | planned | Comments, labels, search, webhooks, sprints — re-evaluated as universal vs implementation-specific. |
 | `v1.0.0` | planned | When a second implementation exists. |
 
