@@ -70,7 +70,7 @@ commits are fine — squash-on-merge cleans them up.
 follow Conventional Commits and is enforced by CI:
 
 ```text
-<type>(<domain>): <imperative summary, lowercase, no trailing period>
+<type>[(optional-scope)]: <imperative summary, lowercase, no trailing period>
 ```
 
 Examples:
@@ -79,10 +79,12 @@ Examples:
 fix(ui): preserve scroll position on tab switch
 feat(api): add cursor pagination
 test(build): cover release-tag dry-run path
+release: vX.Y.Z
 ```
 
-The `<type>` follows the list above. Imperative mood ("add", "fix",
-"remove"), not past tense.
+The `<type>` follows the list above. Scope is recommended when it adds useful
+context, but CI does not require it. Imperative mood ("add", "fix", "remove"),
+not past tense.
 
 Always:
 
@@ -197,7 +199,8 @@ GitHub deletes the remote branch automatically after squash merge.
 There are no release branches. To cut a release:
 
 1. Open a PR that bumps version files. Branch: `release/vX.Y.Z`. Title:
-   `release: vX.Y.Z`. Body lists user-visible changes since the last tag.
+   `release: vX.Y.Z` or `release(repo): vX.Y.Z`. Body lists user-visible
+   changes since the last tag.
 2. Merge the release PR (squash, like any other).
 3. Tag the merge commit on `main`:
 
