@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.1.4/verbs/attachment.finalize.req.json",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/attachment.finalize.req.json",
   "title": "attachment.finalize — Request",
   "description": "Confirm that binary bytes have been successfully uploaded and transition the attachment from pending to ready. Idempotent via operation_id.",
   "type": "object",

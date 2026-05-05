@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.1.4/verbs/attachment.get.req.json",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/attachment.get.req.json",
   "title": "attachment.get — Request",
   "description": "Fetch a single attachment by ID.",
   "type": "object",

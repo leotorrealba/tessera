@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.1.4/verbs/attachment.list.req.json",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/attachment.list.req.json",
   "title": "attachment.list — Request",
   "description": "List attachments for a task. Returns all non-deleted attachments.",
   "type": "object",

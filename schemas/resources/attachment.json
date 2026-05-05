@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.1.4/resources/attachment.json",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/resources/attachment.json",
   "title": "Attachment",
-  "description": "A file attached to a task. Attachments have a two-phase lifecycle: pending (upload slot reserved) and ready (binary confirmed). Implementations MAY expose intermediate status values but MUST support at least pending and ready. The attachment resource is additive in v0.1.4 and does not break the v0.1.0 surface.",
+  "description": "A file attached to a task. Attachments have a two-phase lifecycle: pending (upload slot reserved) and ready (binary confirmed). The attachment resource is additive in v0.1.4 and does not break the v0.1.0 surface.",
   "type": "object",
   "required": ["id", "task_id", "filename", "content_type", "size_bytes", "status", "url", "created_by", "created_at"],
   "properties": {

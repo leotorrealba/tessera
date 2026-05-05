@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.1.4/verbs/attachment.create_upload.res.json",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/attachment.create_upload.res.json",
   "title": "attachment.create_upload — Response",
   "description": "Returns the pending attachment record and an opaque upload_url the client MUST PUT the file bytes to before calling attachment.finalize. upload_url format is implementation-defined.",
   "type": "object",

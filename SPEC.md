@@ -68,7 +68,7 @@ Attachments associate files with tasks using a two-phase upload contract that is
 - **`attachment.create_upload`** reserves an upload slot and returns the pending attachment record plus an opaque `upload_url`. The `upload_url` is implementation-defined — it MAY be a local server endpoint or a presigned cloud storage URL. Clients MUST PUT the raw file bytes to `upload_url` before calling `attachment.finalize`. Idempotent via `operation_id`.
 - **`attachment.finalize`** confirms the binary upload and transitions the attachment from `pending` to `ready`. After finalization `url` is set to an opaque download URL. The verb is idempotent via `operation_id` and domain-idempotent (calling finalize on an already-`ready` attachment with the same `operation_id` is a no-op replay).
 - **`attachment.get`** retrieves a single attachment by id. Implementations MUST NOT include `upload_url` in get responses.
-- **`attachment.list`** returns all non-deleted attachments for a task, ordered by `created_at` ascending, in an `{attachments: [...]}` envelope.
+- **`attachment.list`** returns all `ready` attachments for a task, ordered by `created_at` ascending, in an `{attachments: [...]}` envelope. Pending attachments MUST NOT appear in list responses; they are only visible via `attachment.get` by id.
 
 Attachment authorization derives from the task's project scope: actors authorized on the task's project MAY create and retrieve attachments. Implementations MUST enforce project-scope isolation; cross-project attachment access MUST be rejected.
 
