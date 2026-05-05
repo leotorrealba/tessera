@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "expected_behavior": "Returns all ready attachments for the task ordered by created_at ascending. The attachments envelope is always present; an empty array is valid. Pending attachments MUST NOT appear in list responses."
+  },
+  "attachments": [
+    {
+      "id": "018c3e7a-ff01-7000-8000-000000000001",
+      "task_id": "018c3e7a-0003-7000-8000-000000000001",
+      "filename": "design-review.png",
+      "content_type": "image/png",
+      "size_bytes": 42187,
+      "status": "ready",
+      "url": "/api/attachments/018c3e7a-ff01-7000-8000-000000000001",
+      "created_by": "018c3e7a-0001-7000-8000-000000000001",
+      "created_at": "2026-04-30T10:00:00Z"
+    }
+  ]
+}

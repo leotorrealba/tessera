@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/resources/attachment.json",
+  "title": "Attachment",
+  "description": "A file attached to a task. Attachments have a two-phase lifecycle: pending (upload slot reserved) and ready (binary confirmed). The attachment resource is additive in v0.1.4 and does not break the v0.1.0 surface.",
+  "type": "object",
+  "required": ["id", "task_id", "filename", "content_type", "size_bytes", "status", "url", "created_by", "created_at"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUIDv7 (time-ordered) recommended."
+    },
+    "task_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The task this attachment belongs to. Attachment scope and authorization derive from the task's project."
+    },
+    "filename": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255,
+      "description": "Original filename as provided by the uploader."
+    },
+    "content_type": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 127,
+      "description": "MIME type (e.g. image/png, application/pdf)."
+    },
+    "size_bytes": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "File size in bytes as declared by the uploader. Implementations SHOULD verify this matches the actual binary size during finalization."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "ready"],
+      "description": "pending: upload slot reserved, binary not yet confirmed. ready: binary confirmed, attachment is accessible via url."
+    },
+    "url": {
+      "oneOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "null" }
+      ],
+      "description": "Opaque download URL. null while status is pending. Set by the implementation on finalization; format is implementation-defined."
+    },
+    "created_by": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the actor who created the upload slot."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the attachment record was created."
+    }
+  },
+  "additionalProperties": false
+}

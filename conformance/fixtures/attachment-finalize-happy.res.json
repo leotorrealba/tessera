@@ -1,0 +1,16 @@
+{
+  "_meta": {
+    "expected_behavior": "Marks the attachment as ready after the binary has been PUT to upload_url. Status transitions from 'pending' to 'ready' and url is now set. Idempotent via operation_id: replaying the same operation_id returns the same ready attachment. Calling finalize on an already-ready attachment with the same operation_id is a no-op replay."
+  },
+  "attachment": {
+    "id": "018c3e7a-ff01-7000-8000-000000000001",
+    "task_id": "018c3e7a-0003-7000-8000-000000000001",
+    "filename": "design-review.png",
+    "content_type": "image/png",
+    "size_bytes": 42187,
+    "status": "ready",
+    "url": "/api/attachments/018c3e7a-ff01-7000-8000-000000000001",
+    "created_by": "018c3e7a-0001-7000-8000-000000000001",
+    "created_at": "2026-04-30T10:00:00Z"
+  }
+}
