@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/attachment.create_upload.req.json",
+  "title": "attachment.create_upload — Request",
+  "description": "Reserve an upload slot for a file attachment on a task. Idempotent via operation_id: the same operation_id replays the original response without creating a second record. Same operation_id with different body fields returns 409 Conflict.",
+  "type": "object",
+  "required": ["operation_id", "task_id", "filename", "content_type", "size_bytes"],
+  "properties": {
+    "operation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUIDv7 (time-ordered) recommended. Used for idempotency."
+    },
+    "task_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Task the attachment belongs to. Authorization is derived from the task's project scope."
+    },
+    "filename": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255,
+      "description": "Original filename including extension."
+    },
+    "content_type": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 127,
+      "description": "MIME type of the file."
+    },
+    "size_bytes": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Declared file size in bytes."
+    }
+  },
+  "additionalProperties": false
+}

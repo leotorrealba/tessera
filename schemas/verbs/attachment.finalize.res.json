@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/attachment.finalize.res.json",
+  "title": "attachment.finalize — Response",
+  "description": "Returns the attachment in ready status with url set.",
+  "type": "object",
+  "required": ["attachment"],
+  "properties": {
+    "attachment": {
+      "$ref": "../resources/attachment.json",
+      "description": "The finalized attachment in ready status."
+    }
+  },
+  "additionalProperties": false
+}
