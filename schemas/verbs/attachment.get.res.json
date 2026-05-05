@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/attachment.get.res.json",
+  "title": "attachment.get — Response",
+  "description": "Returns the attachment. upload_url is NOT included in get responses — it is only returned by attachment.create_upload.",
+  "type": "object",
+  "required": ["attachment"],
+  "properties": {
+    "attachment": {
+      "$ref": "../resources/attachment.json"
+    }
+  },
+  "additionalProperties": false
+}

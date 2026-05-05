@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/attachment.create_upload.res.json",
+  "title": "attachment.create_upload — Response",
+  "description": "Returns the pending attachment record and an opaque upload_url the client MUST PUT the file bytes to before calling attachment.finalize. upload_url format is implementation-defined.",
+  "type": "object",
+  "required": ["attachment", "upload_url"],
+  "properties": {
+    "attachment": {
+      "$ref": "../resources/attachment.json",
+      "description": "The newly created attachment in pending status."
+    },
+    "upload_url": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque URL the client MUST PUT the raw file bytes to. May be a local server path or a presigned cloud storage URL."
+    }
+  },
+  "additionalProperties": false
+}
