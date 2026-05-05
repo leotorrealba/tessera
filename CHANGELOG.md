@@ -11,6 +11,45 @@ upgrade notes when bumping.
 
 ---
 
+## [v0.1.4] — 2026-05-05 — Attachment resource and upload lifecycle
+
+**Status: additive. No breaking changes; the v0.1.0 schema lock holds.**
+
+### Added
+- New `attachment` resource (`schemas/resources/attachment.json`). Two-phase
+  lifecycle: `pending` (upload slot reserved) → `ready` (binary confirmed).
+  Fields: `id`, `task_id`, `filename`, `content_type`, `size_bytes`, `status`,
+  `url` (null until ready), `created_by`, `created_at`.
+- Four new verbs for the attachment upload lifecycle:
+  - `attachment.create_upload` — reserve an upload slot; returns the pending
+    attachment and an opaque `upload_url` (local path or presigned cloud URL).
+    Idempotent via `operation_id`.
+  - `attachment.finalize` — confirm binary upload, transition to `ready`, set
+    `url`. Idempotent via `operation_id` and domain-idempotent on already-ready
+    attachments.
+  - `attachment.get` — fetch a single attachment by id. Does NOT return
+    `upload_url`.
+  - `attachment.list` — list all non-deleted attachments for a task, ordered by
+    `created_at` ascending, in `{attachments: [...]}` envelope.
+- Four conformance fixture pairs covering the attachment happy path:
+  `attachment-create-upload-happy`, `attachment-finalize-happy`,
+  `attachment-get-happy`, `attachment-list-happy`.
+
+### Unchanged
+- All v0.1.0–v0.1.3 resources and verbs.
+- Actor, task, project, event, and operation schemas.
+- AgentContext response shape and 32KB truncation contract.
+
+### Upgrade notes (v0.1.3 → v0.1.4)
+- Implementations MUST add the `attachments` DB table and storage backend
+  to claim v0.1.4 conformance.
+- Implementations NOT implementing attachment verbs remain Tessera v0.1.3
+  conformant — attachment support is additive.
+- Authorization rule: attachment scope MUST derive from the task's project.
+  Cross-project attachment access MUST be rejected.
+
+---
+
 ## [v0.1.3] — 2026-04-29 — Agent registration + agent-session lifecycle
 
 **Status: additive. No breaking changes; the v0.1.0 schema lock holds.**

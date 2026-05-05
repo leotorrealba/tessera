@@ -1,0 +1,17 @@
+{
+  "_meta": {
+    "expected_behavior": "First call for this operation_id. Implementation MUST create an attachment record in 'pending' status and return an upload_url the client MUST PUT the binary bytes to before calling attachment.finalize. upload_url format is opaque and implementation-defined (local path, presigned S3 URL, etc.). The same operation_id replays the original response without creating a second record."
+  },
+  "attachment": {
+    "id": "018c3e7a-ff01-7000-8000-000000000001",
+    "task_id": "018c3e7a-0003-7000-8000-000000000001",
+    "filename": "design-review.png",
+    "content_type": "image/png",
+    "size_bytes": 42187,
+    "status": "pending",
+    "url": null,
+    "created_by": "018c3e7a-0001-7000-8000-000000000010",
+    "created_at": "2026-04-30T10:00:00Z"
+  },
+  "upload_url": "/api/attachments/018c3e7a-ff01-7000-8000-000000000001/upload"
+}

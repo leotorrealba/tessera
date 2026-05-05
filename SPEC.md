@@ -1,16 +1,16 @@
-# Tessera v0.1.3
+# Tessera v0.1.4
 
-**Status:** v0.1.3 — additive release. The v0.1.0 schema lock holds; v0.1.3 expands the actor-lifecycle surface by broadening `actor.register` to cover both human and agent branches and by adding `actor.heartbeat` and `actor.deactivate`, without modifying any v0.1.0 schema incompatibly. Additive changes (new optional fields, new verbs) remain permitted in v0.1.x; breaking changes require a v0.2.0 bump and a migration guide. Implementations should pin to a specific v0.1.x and follow [`CHANGELOG.md`](./CHANGELOG.md).
+**Status:** v0.1.4 — additive release. The v0.1.0 schema lock holds; v0.1.4 adds the `attachment` resource and four attachment verbs (`attachment.create_upload`, `attachment.finalize`, `attachment.get`, `attachment.list`) without modifying any v0.1.0–v0.1.3 schema incompatibly. Additive changes (new optional fields, new verbs, new resources) remain permitted in v0.1.x; breaking changes require a v0.2.0 bump and a migration guide. Implementations should pin to a specific v0.1.x and follow [`CHANGELOG.md`](./CHANGELOG.md).
 
 ## TL;DR for implementers
 
-1. Install your DB schema for the five core resources (`actor`, `project`, `task`, `event`, `operation`) and support the companion `AgentContext` response schema. The shapes are defined in [`schemas/resources/`](./schemas/resources/).
-2. Implement the pinned v0.1.x verb set you claim to support. For `v0.1.3`, that surface is `project.list`, `project.get`, `task.create`, `task.get`, `task.update_status`, `actor.register`, `actor.list`, `actor.get`, `actor.revoke_token`, `actor.heartbeat`, and `actor.deactivate`. Request/response shapes are in [`schemas/verbs/`](./schemas/verbs/).
-3. Make your implementation pass [`conformance/fixtures/`](./conformance/fixtures/). The fixtures form coherent project/task and actor-lifecycle narratives.
+1. Install your DB schema for the five core resources (`actor`, `project`, `task`, `event`, `operation`) and the `attachment` resource added in v0.1.4. Support the companion `AgentContext` response schema. The shapes are defined in [`schemas/resources/`](./schemas/resources/).
+2. Implement the pinned v0.1.x verb set you claim to support. For `v0.1.4`, the full surface is `project.list`, `project.get`, `task.create`, `task.get`, `task.update_status`, `actor.register`, `actor.list`, `actor.get`, `actor.revoke_token`, `actor.heartbeat`, `actor.deactivate`, `attachment.create_upload`, `attachment.finalize`, `attachment.get`, and `attachment.list`. Request/response shapes are in [`schemas/verbs/`](./schemas/verbs/).
+3. Make your implementation pass [`conformance/fixtures/`](./conformance/fixtures/). The fixtures form coherent project/task, actor-lifecycle, and attachment narratives.
 
 ## Core resources
 
-Five core resources plus one companion schema. All schemas use JSON Schema 2020-12.
+Six core resources plus one companion schema. All schemas use JSON Schema 2020-12.
 
 | Resource | Schema | Purpose |
 | --- | --- | --- |
@@ -19,9 +19,10 @@ Five core resources plus one companion schema. All schemas use JSON Schema 2020-
 | **Task** | [`schemas/resources/task.json`](./schemas/resources/task.json) | Unit of work. `status` is a materialized projection of the latest `status_changed` event. |
 | **Event** | [`schemas/resources/event.json`](./schemas/resources/event.json) | Append-only authoritative state changes. Source of truth. MUST NOT be mutated or deleted. |
 | **Operation** | [`schemas/resources/operation.json`](./schemas/resources/operation.json) | Server-side idempotency dedup record. 30-day minimum retention. |
+| **Attachment** (v0.1.4) | [`schemas/resources/attachment.json`](./schemas/resources/attachment.json) | File attached to a task. Two-phase lifecycle: `pending` (slot reserved) → `ready` (binary confirmed). |
 | **AgentContext** | [`schemas/resources/agent-context.json`](./schemas/resources/agent-context.json) | Structured response field on `task.create` and `task.get`. Caps at 32KB; over-cap responses set `truncated:true` with `next_page_tokens`. |
 
-## Verbs (v0.1.3 surface)
+## Verbs (v0.1.4 surface)
 
 | Verb | Request | Response | Idempotent? |
 | --- | --- | --- | --- |
@@ -36,6 +37,10 @@ Five core resources plus one companion schema. All schemas use JSON Schema 2020-
 | `actor.revoke_token` (v0.1.2) | [req](./schemas/verbs/actor.revoke_token.req.json) | [res](./schemas/verbs/actor.revoke_token.res.json) | Yes (operation_id) + domain-idempotent |
 | `actor.heartbeat` (v0.1.3) | [req](./schemas/verbs/actor.heartbeat.req.json) | [res](./schemas/verbs/actor.heartbeat.res.json) | No `operation_id`; repeat calls refresh liveness for the same agent session |
 | `actor.deactivate` (v0.1.3) | [req](./schemas/verbs/actor.deactivate.req.json) | [res](./schemas/verbs/actor.deactivate.res.json) | Yes (operation_id) + domain-idempotent |
+| `attachment.create_upload` (v0.1.4) | [req](./schemas/verbs/attachment.create_upload.req.json) | [res](./schemas/verbs/attachment.create_upload.res.json) | Yes (operation_id) |
+| `attachment.finalize` (v0.1.4) | [req](./schemas/verbs/attachment.finalize.req.json) | [res](./schemas/verbs/attachment.finalize.res.json) | Yes (operation_id) + domain-idempotent |
+| `attachment.get` (v0.1.4) | [req](./schemas/verbs/attachment.get.req.json) | [res](./schemas/verbs/attachment.get.res.json) | N/A (read-only) |
+| `attachment.list` (v0.1.4) | [req](./schemas/verbs/attachment.list.req.json) | [res](./schemas/verbs/attachment.list.res.json) | N/A (read-only) |
 
 `task.create` accepts either `project_id` or `repo_path`. Implementations MAY resolve `repo_path` through a repo-root mapping, a project table, or client-side detection such as `.sprino/project.id`; the response always contains the resolved `task.project_id`.
 
@@ -55,6 +60,19 @@ The six actor-lifecycle verbs let implementations onboard humans and agent sessi
 > The plaintext token is returned exactly once on `actor.register`, whether the registered actor is human or agent. On idempotent replay (same `operation_id`) the response is `{actor}` only — the `token` field is omitted. There is intentionally no recovery path. If a human token is lost, an authenticated holder of an active human credential MUST call `actor.revoke_token` and then `actor.register` a fresh human actor. If an agent session token is lost, the responsible active human MUST end that agent session with `actor.deactivate` and then `actor.register` a fresh agent session. This keeps Tessera's credential model honest: no plaintext-at-rest, no "show me the token again" verb, no parallel reset flow to audit.
 
 `actor.revoke_token` is the in-protocol primitive for human credential rotation. `actor.deactivate` is the in-protocol primitive for ending an agent session credential. A more ergonomic single-call rotate verb is intentionally not part of the v0.1.3 surface; implementations are free to expose one as a non-Tessera extension on top of these primitives.
+
+## Attachment lifecycle (v0.1.4)
+
+Attachments associate files with tasks using a two-phase upload contract that is compatible with both local server storage and cloud presigned-URL storage backends.
+
+- **`attachment.create_upload`** reserves an upload slot and returns the pending attachment record plus an opaque `upload_url`. The `upload_url` is implementation-defined — it MAY be a local server endpoint or a presigned cloud storage URL. Clients MUST PUT the raw file bytes to `upload_url` before calling `attachment.finalize`. Idempotent via `operation_id`.
+- **`attachment.finalize`** confirms the binary upload and transitions the attachment from `pending` to `ready`. After finalization `url` is set to an opaque download URL. The verb is idempotent via `operation_id` and domain-idempotent (calling finalize on an already-`ready` attachment with the same `operation_id` is a no-op replay).
+- **`attachment.get`** retrieves a single attachment by id. Implementations MUST NOT include `upload_url` in get responses.
+- **`attachment.list`** returns all non-deleted attachments for a task, ordered by `created_at` ascending, in an `{attachments: [...]}` envelope.
+
+Attachment authorization derives from the task's project scope: actors authorized on the task's project MAY create and retrieve attachments. Implementations MUST enforce project-scope isolation; cross-project attachment access MUST be rejected.
+
+The `upload_url` returned by `attachment.create_upload` is valid for a single upload attempt. Implementations MAY set an expiry on presigned URLs; clients SHOULD call `attachment.create_upload` again if the upload slot has expired.
 
 ## Idempotency rules (`operation_id`)
 

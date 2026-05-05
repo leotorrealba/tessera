@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.1.4/verbs/attachment.list.res.json",
+  "title": "attachment.list — Response",
+  "description": "Returns all non-deleted attachments for the task ordered by created_at ascending. The attachments array is always present; an empty array is valid.",
+  "type": "object",
+  "required": ["attachments"],
+  "properties": {
+    "attachments": {
+      "type": "array",
+      "items": {
+        "$ref": "../resources/attachment.json"
+      },
+      "description": "Array of attachments. Pending attachments MAY be included or excluded by implementation."
+    }
+  },
+  "additionalProperties": false
+}

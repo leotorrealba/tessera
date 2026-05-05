@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.1.4/verbs/attachment.get.req.json",
+  "title": "attachment.get — Request",
+  "description": "Fetch a single attachment by ID.",
+  "type": "object",
+  "required": ["attachment_id"],
+  "properties": {
+    "attachment_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the attachment to retrieve."
+    }
+  },
+  "additionalProperties": false
+}
