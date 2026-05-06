@@ -1,0 +1,13 @@
+{
+  "_meta": {
+    "preconditions": "project-create-happy fixture already executed in this test session.",
+    "expected_behavior": "Idempotent replay: same operation_id, same payload returns the original response unchanged. Implementation MUST NOT create a duplicate project."
+  },
+  "project": {
+    "id": "018c3e7a-0002-7000-8000-000000000003",
+    "slug": "alpha",
+    "display_name": "Alpha Project",
+    "repo_path": null,
+    "created_at": "2026-05-06T10:00:00Z"
+  }
+}

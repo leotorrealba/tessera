@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.1.5/verbs/project.create.req.json",
+  "title": "project.create — Request",
+  "description": "Create a project. Idempotent via operation_id. The server determines created_at; clients MUST NOT supply it.",
+  "type": "object",
+  "required": ["operation_id", "slug", "display_name"],
+  "properties": {
+    "operation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUIDv7 (time-ordered). Same operation_id replays the cached response. Same operation_id with a different request body returns 409 Conflict."
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Stable, URL-safe identifier. Lowercase alphanumerics and hyphens; cannot start or end with hyphen. MUST be unique across all projects in the implementation."
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "repo_path": {
+      "type": ["string", "null"],
+      "description": "Canonical local path of the repo root. Optional."
+    }
+  },
+  "additionalProperties": false
+}

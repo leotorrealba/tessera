@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.1.5/verbs/project.create.res.json",
+  "title": "project.create — Response",
+  "description": "Successful project.create response. On operation_id replay the cached response is returned unchanged.",
+  "type": "object",
+  "required": ["project"],
+  "properties": {
+    "project": { "$ref": "../resources/project.json" }
+  },
+  "additionalProperties": false
+}

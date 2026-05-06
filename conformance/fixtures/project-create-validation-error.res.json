@@ -1,0 +1,9 @@
+{
+  "_meta": {
+    "expected_behavior": "Slug contains spaces and uppercase letters, violating the slug pattern. Implementation MUST return 400 validation_error without creating any resource."
+  },
+  "_error": {
+    "status": 400,
+    "code": "validation_error"
+  }
+}
