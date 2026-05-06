@@ -11,6 +11,42 @@ upgrade notes when bumping.
 
 ---
 
+## [v0.1.5] — 2026-05-06 — Project creation verb
+
+**Status: additive. No breaking changes; the v0.1.0 schema lock holds.**
+
+### Added
+- New `project.create` verb (`schemas/verbs/project.create.req.json`,
+  `schemas/verbs/project.create.res.json`). Creates a project with a
+  stable slug and display name. Optional `repo_path`. Idempotent via
+  `operation_id`.
+- Four conformance fixtures:
+  - `project-create-happy` — successful creation.
+  - `project-create-operation-replay` — idempotent replay returns cached project.
+  - `project-create-slug-conflict` — 409 `slug_conflict` when slug is taken.
+  - `project-create-validation-error` — 400 `validation_error` for invalid slug.
+
+### Error codes
+| Code | HTTP | Meaning |
+|---|---|---|
+| `slug_conflict` | 409 | The requested slug is already taken by another project. |
+
+### Conformance notes
+- Implementations claiming v0.1.5 conformance MUST implement `project.create`.
+- Implementations NOT implementing `project.create` remain Tessera v0.1.4
+  conformant and SHOULD NOT claim v0.1.5.
+
+### Upgrade notes (v0.1.4 → v0.1.5)
+- Add `POST /projects` (or equivalent verb endpoint) that accepts
+  `{operation_id, slug, display_name, repo_path?}` and returns `{project}`.
+- Wire idempotency via `operation_id` — same request body replays the cached
+  project; differing body returns 409 `operation_id_conflict`.
+- Enforce slug uniqueness — return 409 `slug_conflict` (not a generic 500) when
+  the slug is already taken.
+- Pass all four `project-create-*` conformance fixtures.
+
+---
+
 ## [v0.1.4] — 2026-05-05 — Attachment resource and upload lifecycle
 
 **Status: additive. No breaking changes; the v0.1.0 schema lock holds.**

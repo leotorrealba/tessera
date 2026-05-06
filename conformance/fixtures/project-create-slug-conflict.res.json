@@ -1,0 +1,13 @@
+{
+  "_meta": {
+    "preconditions": "A project with slug 'sprino' already exists in the test DB.",
+    "expected_behavior": "Slug is taken. Implementation MUST return 409 with code slug_conflict and MUST NOT create a new project."
+  },
+  "_error": {
+    "status": 409,
+    "code": "slug_conflict",
+    "details": {
+      "slug": "sprino"
+    }
+  }
+}

@@ -5,7 +5,7 @@
 ## TL;DR for implementers
 
 1. Install your DB schema for the five core resources (`actor`, `project`, `task`, `event`, `operation`) and the `attachment` resource added in v0.1.4. Support the companion `AgentContext` response schema. The shapes are defined in [`schemas/resources/`](./schemas/resources/).
-2. Implement the pinned v0.1.x verb set you claim to support. For `v0.1.4`, the full surface is `project.list`, `project.get`, `task.create`, `task.get`, `task.update_status`, `actor.register`, `actor.list`, `actor.get`, `actor.revoke_token`, `actor.heartbeat`, `actor.deactivate`, `attachment.create_upload`, `attachment.finalize`, `attachment.get`, and `attachment.list`. Request/response shapes are in [`schemas/verbs/`](./schemas/verbs/).
+2. Implement the pinned v0.1.x verb set you claim to support. For `v0.1.5`, the full surface is `project.create`, `project.list`, `project.get`, `task.create`, `task.get`, `task.update_status`, `actor.register`, `actor.list`, `actor.get`, `actor.revoke_token`, `actor.heartbeat`, `actor.deactivate`, `attachment.create_upload`, `attachment.finalize`, `attachment.get`, and `attachment.list`. Request/response shapes are in [`schemas/verbs/`](./schemas/verbs/).
 3. Make your implementation pass [`conformance/fixtures/`](./conformance/fixtures/). The fixtures form coherent project/task, actor-lifecycle, and attachment narratives.
 
 ## Core resources
@@ -26,6 +26,7 @@ Six core resources plus one companion schema. All schemas use JSON Schema 2020-1
 
 | Verb | Request | Response | Idempotent? |
 | --- | --- | --- | --- |
+| `project.create` (v0.1.5) | [req](./schemas/verbs/project.create.req.json) | [res](./schemas/verbs/project.create.res.json) | `operation_id` |
 | `project.list` | [req](./schemas/verbs/project.list.req.json) | [res](./schemas/verbs/project.list.res.json) | N/A (read-only) |
 | `project.get` | [req](./schemas/verbs/project.get.req.json) | [res](./schemas/verbs/project.get.res.json) | N/A (read-only) |
 | `task.create` | [req](./schemas/verbs/task.create.req.json) | [res](./schemas/verbs/task.create.res.json) | Yes (operation_id) |
@@ -271,7 +272,7 @@ v0.1 surface has been exercised by at least one third-party
 implementation:
 
 - Event log replay verbs (`events.list`).
-- Project mutation verbs (`project.create`, `project.update`).
+- Project update verb (`project.update`). `project.create` landed in v0.1.5.
 - Audit log of actor-lifecycle events (`actor_events`). Deferred to
   v0.2 alongside the broader event-log expansion.
 - Comments, labels, search, webhooks, sprints (re-evaluated as universal
