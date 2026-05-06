@@ -17,13 +17,18 @@ or a UI.
 
 Concretely, Tessera v0.1.x is:
 
-- **Six JSON Schemas** for the core resources: `actor`, `project`,
-  `task`, `event`, `operation`, and `agent_context`.
-- **Nine verbs** with paired request/response JSON Schemas — five
-  task/project verbs (`project.list`, `project.get`, `task.create`,
-  `task.get`, `task.update_status`) and four actor-lifecycle verbs
-  added in v0.1.2 (`actor.register`, `actor.list`, `actor.get`,
-  `actor.revoke_token`).
+- **Seven JSON Schemas** for the core resources: `actor`, `project`,
+  `task`, `event`, `operation`, `agent_context`, and `attachment`
+  (added v0.1.4).
+- **Sixteen verbs** with paired request/response JSON Schemas:
+  - Five task/project verbs: `project.list`, `project.get`,
+    `project.create` (v0.1.5), `task.create`, `task.get`,
+    `task.update_status`
+  - Six actor-lifecycle verbs (v0.1.2–v0.1.3): `actor.register`,
+    `actor.list`, `actor.get`, `actor.revoke_token`,
+    `actor.heartbeat`, `actor.deactivate`
+  - Four attachment verbs (v0.1.4): `attachment.create_upload`,
+    `attachment.finalize`, `attachment.get`, `attachment.list`
 - **A conformance fixture suite** — paired `*.req.json` / `*.res.json`
   files that any conforming implementation MUST replay correctly.
 - **A set of semantic rules** (event-log append-only, idempotency via
@@ -110,8 +115,8 @@ What's NOT in the v0.1 set:
 - **Labels / tags** — useful but easy to add additively. Deferred.
 - **Sprints / iterations** — under question whether this is universal or
   implementation-specific. Re-evaluated in v0.2 design.
-- **Webhooks / search / attachments** — implementation territory until
-  there's evidence the shape is universal.
+- **Webhooks / search** — implementation territory until there's evidence
+  the shape is universal. Attachments graduated from this list in v0.1.4.
 
 The principle: **a resource lives in Tessera once a second implementer
 would also need to make the same modeling decision.** Until then, it
@@ -222,6 +227,57 @@ fresh one instead), and no `actor.update` verb (display name and
 metadata are immutable post-registration in v0.1.2 — this restriction
 will be lifted in a future minor once the use case is exercised).
 
+### 5g. Agent registration and session lifecycle (v0.1.3)
+
+v0.1.3 extended `actor.register` to accept `kind: "agent"` alongside
+the human branch. Agent registration requires two additional fields:
+
+- `agent_runtime` — the runtime identifier (e.g. `"claude-code"`,
+  `"cursor"`, `"codex"`).
+- `parent_actor_id` — must resolve to an **active human actor**. The
+  server MUST reject if the parent is itself an agent or is inactive.
+
+Two new verbs manage the agent session after registration:
+
+- **`actor.heartbeat`** — refreshes server-side liveness metadata
+  without rotating the credential. Idempotent; calling it multiple times
+  is a no-op.
+- **`actor.deactivate`** — ends the agent session by revoking the agent's
+  active credential. Domain-idempotent: if the session is already
+  inactive, deactivate returns the actor record unchanged (no error).
+
+`actor.deactivate` applies to agent sessions only. Human credential
+rotation uses `actor.revoke_token`. The admin guard
+(`last_admin_protected`) does NOT apply to `actor.deactivate` — it is
+an agent-session verb, not a human lifecycle verb.
+
+Token redaction on idempotent replay still applies: the plaintext token
+is returned exactly once for a given `operation_id` regardless of whether
+the actor is human or agent.
+
+### 5h. Attachment lifecycle: two-phase upload (v0.1.4)
+
+`attachment` is the seventh core resource. Its lifecycle is deliberately
+two-phase to support both local storage and presigned cloud URLs without
+forcing the server to proxy large binaries:
+
+1. **`attachment.create_upload`** — reserves an upload slot. Returns a
+   `pending` attachment record plus an opaque `upload_url`. For local
+   storage the URL is a same-origin path; for cloud storage it is a
+   presigned URL. Idempotent via `operation_id`.
+2. Client PUTs the binary directly to `upload_url`. The server is not
+   in the data path for cloud backends.
+3. **`attachment.finalize`** — confirms the binary upload; transitions
+   the attachment to `ready` and sets `url`. Idempotent via
+   `operation_id` and domain-idempotent when already `ready`.
+
+`attachment.get` and `attachment.list` are read verbs. `attachment.list`
+returns all non-deleted attachments for a task ordered by `created_at`
+ascending, in a `{attachments: [...]}` envelope.
+
+Authorization scope derives from the task's project — cross-project
+attachment access MUST be rejected.
+
 ---
 
 ## 6. Conformance
@@ -248,7 +304,7 @@ An implementation is **Tessera v0.1.x conformant** when:
    All other response fields — including `task.id` — must match the
    fixture exactly, even when server-generated. See
    [`conformance/README.md`](./conformance/README.md) for the full rules.
-2. All nine v0.1.x verbs are implemented per [`schemas/verbs/`](./schemas/verbs/).
+2. All verbs through the target v0.1.x version are implemented per [`schemas/verbs/`](./schemas/verbs/). As of v0.1.5 that is sixteen verbs; see the CHANGELOG for the additive per-version list.
 3. The semantic rules in section 5 are enforced (operation replay,
    `409 Conflict` on `operation_id` payload mismatch, `410 Gone` on
    expired operations, optimistic concurrency via `if_match`/`version`,

@@ -84,7 +84,7 @@ of relevant state that the server gives back when an agent fetches a
 task, so the agent doesn't have to re-explain itself every time. That
 field is capped at 32 KB so responses don't bloat.
 
-## How do members get added? (v0.1.2)
+## How do members get added? (v0.1.2 – v0.1.3)
 
 In v0.1.2 Tessera grew a small set of "lifecycle" verbs for actors:
 `actor.register` (mint a new human teammate), `actor.list`,
@@ -103,12 +103,14 @@ Two opinions worth knowing:
   This is enforced by the protocol, not left up to the implementer:
   losing the token means rotating to a new one, not recovering the
   old one. That's a deliberate "secrets shown once" stance.
-- **Agent registration is deferred.** v0.1.2 only mints `kind=human`
-  actors. AI agents are still declared at deploy time (in env files,
-  config, or boot scripts). Agent self-registration needs threat-model
-  work — what permissions does a freshly-minted agent get? Who
-  authorized it? — that we haven't done yet, and shipping the verb
-  half-finished would set a bad precedent.
+- **Agent registration landed in v0.1.3.** `actor.register` now
+  accepts `kind: "agent"` alongside humans. You supply `agent_runtime`
+  (e.g. `"claude-code"`) and `parent_actor_id` (a human who is
+  responsible for the spawn). The server checks that the parent is an
+  active human — an agent can't spawn another agent without a human in
+  the chain. Two companion verbs manage the session: `actor.heartbeat`
+  (keep-alive, no credential rotation) and `actor.deactivate` (end
+  the session gracefully, domain-idempotent if already inactive).
 
 ## Tessera vs MCP — what's the difference?
 
@@ -202,10 +204,11 @@ Honest list:
 - **It's young.** The schema is stable within v0.1.x but we haven't
   yet seen a third-party implementation, which is the test that
   proves the spec is buildable.
-- **The verb set is small on purpose.** Nine verbs as of v0.1.2 — five
-  for tasks/projects, four for the actor lifecycle. No comments, no
-  labels, no search, no sprints, no webhooks. Those land in v0.2 once
-  we know whether they're truly universal or implementation-specific.
+- **The verb set is small on purpose.** Sixteen verbs as of v0.1.5 —
+  six for tasks/projects (including `project.create`), six for the
+  actor lifecycle, four for attachment upload. No comments, no labels,
+  no search, no sprints, no webhooks. Those land in v0.2 once we know
+  whether they're truly universal or implementation-specific.
 - **No transport is mandated.** Some implementers want a stricter
   contract that includes "must speak HTTP this way." Tessera does not
   do that. Transport is your call. This is a feature for tool
