@@ -23,6 +23,11 @@
       "format": "uuid",
       "description": "Reference to an actor (human or agent). NULL means unassigned."
     },
+    "parent_task_id": {
+      "type": ["string", "null"],
+      "format": "uuid",
+      "description": "UUID of the parent task. NULL means root task. Max hierarchy depth is 3 levels (enforced by implementations). Setting parent is a structural operation; children must all be done before a parent can be marked done."
+    },
     "created_by": {
       "type": "string",
       "format": "uuid",
