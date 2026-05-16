@@ -4,7 +4,7 @@
 
 The name comes from Latin *tessera*: a small mosaic tile, and the wooden tile Roman soldiers carried with their unit's assignment and orders. The metaphor is literal — every task is a tessera, and the project is the mosaic that emerges when many of them are placed in coordination.
 
-> **Status: v0.1.5 (additive — project.create verb).** Five core resources plus the attachment resource, locked since v0.1.0/v0.1.4 respectively; sixteen verbs now. Schemas and conformance fixtures evolve additively only within v0.1.x. Implementations should pin to a specific v0.1.x and follow the [changelog](./CHANGELOG.md).
+> **Status: v0.1.5 (additive — project.create verb).** Five core resources plus the attachment resource, locked since v0.1.0/v0.1.4 respectively; sixteen verbs now (three task + three project + eight actor-lifecycle + four attachment). Schemas and conformance fixtures evolve additively only within v0.1.x. Implementations should pin to a specific v0.1.x and follow the [changelog](./CHANGELOG.md).
 
 ## Two reading paths
 
@@ -53,8 +53,8 @@ The `conformance/` directory holds paired JSON request/response fixtures that an
 - **v0.1.2** ✅ shipped — actor lifecycle baseline: `actor.register` (humans only), `actor.list`, `actor.get`, `actor.revoke_token`. Plaintext token returned exactly once; idempotent replay redacts the token.
 - **v0.1.3** ✅ shipped — additive actor lifecycle expansion: `actor.register` now supports both human and agent registration; agent registration requires `agent_runtime` and `parent_actor_id`, and the parent must resolve to an active human actor responsible for spawn. Added `actor.heartbeat` for agent-session liveness refresh without credential rotation and `actor.deactivate` for domain-idempotent agent-session credential end/revocation. Human `actor.revoke_token` remains the credential-rotation primitive for humans. Token redaction on idempotent replay still applies to both human and agent registration.
 - **v0.1.4** ✅ shipped — `attachment` resource and upload lifecycle: `attachment.create_upload`, `attachment.finalize`, `attachment.get`, `attachment.list`. Two-phase upload (pending → ready), opaque `upload_url` for local or presigned cloud storage. Four conformance fixtures.
-- **v0.1.5** ✅ shipped — `project.create` verb: stable slug, display name, optional repo path. Idempotent via `operation_id`. New error code `slug_conflict` (409). Four conformance fixtures.
-- **v0.1.x** — additive: `events.list`, `project.update`, and actor-lifecycle audit log (`actor_events`) once exercised by at least one third-party implementation.
+- **v0.1.5** ✅ shipped — `project.create` verb: stable slug, display name, optional repo path. Idempotent via `operation_id`. New error code `slug_conflict` (409). Four conformance fixtures. Also adds `parent_task_id` to the task schema for hierarchy.
+- **v0.1.x** — additive: `task.list`, `events.list`, `project.update`, and actor-lifecycle audit log (`actor_events`) once exercised by at least one third-party implementation.
 - **v0.2.0** — comments, labels, search, webhooks, sprints (re-evaluated as universal vs implementation-specific).
 - **v1.0.0** — when there is a second implementation.
 
