@@ -19,6 +19,9 @@
 - Goal #1 implementation is complete on branch `codex/task-list-lease-contract`.
   Local gates passed: JSON sweep, `git diff --check`, LGTM, QA, adversary-review,
   and retrospect.
+- PR #13 is mergeable but blocked remotely by GitHub Actions account billing:
+  both required jobs report `The job was not started because your account is
+  locked due to a billing issue.`
 - Kiln can target Tessera-native queue intake against the published `task.list`
   and `task.claim` contract after the PR lands.
 - `graphify-out/` exists locally but is untracked; refresh evidence must be
@@ -47,7 +50,8 @@
 
 ## Remaining
 
-- Open and merge the Tessera v0.1.6 PR after remote checks pass.
+- Resolve the GitHub Actions billing lock, re-run PR #13, then merge the
+  Tessera v0.1.6 PR after remote checks pass.
 - Follow-up Kiln integration after the Tessera PR lands.
 
 ## Technical Debt
