@@ -20,10 +20,11 @@ Concretely, Tessera v0.1.x is:
 - **Seven JSON Schemas** for the core resources: `actor`, `project`,
   `task`, `event`, `operation`, `agent_context`, and `attachment`
   (added v0.1.4).
-- **Sixteen verbs** with paired request/response JSON Schemas:
-  - Five task/project verbs: `project.list`, `project.get`,
+- **Eighteen verbs** with paired request/response JSON Schemas:
+  - Eight task/project verbs: `project.list`, `project.get`,
     `project.create` (v0.1.5), `task.create`, `task.get`,
-    `task.update_status`
+    `task.update_status`, `task.list` (v0.1.6), `task.claim`
+    (v0.1.6)
   - Six actor-lifecycle verbs (v0.1.2–v0.1.3): `actor.register`,
     `actor.list`, `actor.get`, `actor.revoke_token`,
     `actor.heartbeat`, `actor.deactivate`
@@ -104,7 +105,7 @@ Six resources. Why these six?
 | --- | --- |
 | **Actor** | Every PM tool has authors of work. Tessera makes `kind: agent` a schema-level distinction so agents are first-class — not users-with-a-flag. This is the single most opinionated decision in the spec, and the one that everything else flows from. |
 | **Project** | Every PM tool has scope boundaries. "Workspace," "team," "board" — same idea. Naming it `project` is conventional in dev tooling. |
-| **Task** | The atomic unit of work. Variants (story, ticket, issue, item) are renaming, not redesign. |
+| **Task** | The atomic unit of work. Status and claim lease fields are additive projections; variants (story, ticket, issue, item) are renaming, not redesign. |
 | **Event** | The append-only log. Every PM tool needs an audit trail; making it the source of truth (rather than a sidecar) means agents can replay history rather than guessing. |
 | **Operation** | The idempotency dedup record. Required for safe retries from clients (especially agents) that can't always tell whether their last call succeeded. |
 | **Agent Context** | Structured response payload returned on `task.get` so agents start with full context (related tasks, recent events, repo refs) instead of re-explaining. Modeled as its own schema because the truncation contract is non-trivial. |
@@ -168,6 +169,9 @@ and defeat the point.
 - On mismatch: return `409 Conflict` with the **server's current task
   body** so the client can re-read and retry without an extra round-trip.
 
+This applies to `task.update_status` and `task.claim`. It does not
+apply to read verbs or actor lifecycle verbs.
+
 This exists because last-write-wins is a footgun when AI agents are
 authors. Agents tend not to pause to re-check state; explicit version
 tokens force them to.
@@ -191,8 +195,8 @@ to issue a follow-up call for every task fetch.
 When a verb fails, implementations return a structured error object
 with a stable, lowercase, snake_case `code` (e.g.
 `validation_error`, `operation_id_conflict`,
-`version_mismatch`). Codes are part of the protocol surface and
-covered by the deprecation policy.
+`version_mismatch`, `claim_conflict`). Codes are part of the protocol
+surface and covered by the deprecation policy.
 
 This is what lets agents handle errors without parsing prose.
 
@@ -278,6 +282,46 @@ ascending, in a `{attachments: [...]}` envelope.
 Authorization scope derives from the task's project — cross-project
 attachment access MUST be rejected.
 
+### 5i. Task queue scanning and claim leases (v0.1.6)
+
+`task.list` scans a project's queue deterministically. It supports
+filters for queue-slicing plus cursor pagination, and it uses one
+normative total order: claimable tasks first, then actively leased
+tasks. Within the claimable bucket, sort by `created_at` ascending,
+then `id` ascending. Within the leased bucket, sort by
+`claim_expires_at` ascending, then `created_at` ascending, then `id`
+ascending. Cursors are opaque and MUST preserve that ordering across
+pages. `claimable_only` is the primary queue filter; optional status
+filters let callers narrow the page to the states they actually want to
+claim. The conformance suite evaluates active leases against the fixture
+clock, not the host wall clock.
+
+`task.claim` acquires or renews a server-owned lease. The server, not
+the client, writes `claim_holder_id` and `claim_expires_at` on the task
+resource. On renewal, the new expiry extends from the current active
+`claim_expires_at`, not from `_clock.now`. Validation precedence is
+normative: first operation-cache lookup and same-payload replay, then
+operation-cache payload mismatch, then request/schema validity for
+fresh requests, then task lookup and `if_match` version comparison,
+then active competing claim conflict. A same `operation_id` replay MUST
+be returned before any `if_match` evaluation, even if the task's
+version has advanced. The verb is idempotent via `operation_id` and
+concurrency-safe via `if_match`. The fixture harness pins these
+scenarios to a deterministic 30-minute lease window so the
+claim-expiry assertions are exact across runs.
+
+Claim leases reuse the existing `assigned` event kind so the v0.x event
+taxonomy stays fixed. The replay-safe distinction is the payload:
+normal assignment events use `assigned` without `claim_expires_at` and
+project to `assignee_id`, while claim-lease events use `assigned` with
+`payload.claim_expires_at` present and project only to
+`claim_holder_id` and `claim_expires_at`. The event payload's `to`
+field carries the actor for the transition.
+
+If another worker already holds an active claim, `task.claim` MUST fail
+closed with 409 `claim_conflict` and return the server's current task
+body so the caller can rescan instead of assuming ownership.
+
 ---
 
 ## 6. Conformance
@@ -304,7 +348,7 @@ An implementation is **Tessera v0.1.x conformant** when:
    All other response fields — including `task.id` — must match the
    fixture exactly, even when server-generated. See
    [`conformance/README.md`](./conformance/README.md) for the full rules.
-2. All verbs through the target v0.1.x version are implemented per [`schemas/verbs/`](./schemas/verbs/). As of v0.1.5 that is sixteen verbs; see the CHANGELOG for the additive per-version list.
+2. All verbs through the target v0.1.x version are implemented per [`schemas/verbs/`](./schemas/verbs/). As of v0.1.6 that is eighteen verbs; see the CHANGELOG for the additive per-version list.
 3. The semantic rules in section 5 are enforced (operation replay,
    `409 Conflict` on `operation_id` payload mismatch, `410 Gone` on
    expired operations, optimistic concurrency via `if_match`/`version`,
@@ -338,6 +382,9 @@ conventions to know about — both documented in
 - **`_meta`** may appear at the top level of either `.req.json` or
   `.res.json` files. It documents preconditions in human terms and the
   harness MUST ignore it when validating shape.
+- **`_clock`** may appear at the top level of a request fixture. The
+  harness MUST use `_clock.now` as the execution clock for time-sensitive
+  fixtures and MUST ignore `_clock` when validating the verb body.
 
 Open a PR adding a link to your harness in the README — we want to know
 who's out there.

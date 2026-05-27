@@ -11,6 +11,63 @@ upgrade notes when bumping.
 
 ---
 
+## [v0.1.6] — 2026-05-27 — Task queue scanning and claim leases
+
+**Status: additive. No breaking changes; the v0.1.0 schema lock holds.**
+
+### Added
+- New `task.list` verb (`schemas/verbs/task.list.req.json`,
+  `schemas/verbs/task.list.res.json`). Deterministic project-scoped queue
+  scan with filters (`status`, `claimable_only`) and cursor pagination.
+  Claimable tasks are returned first, then actively leased tasks.
+- New `task.claim` verb (`schemas/verbs/task.claim.req.json`,
+  `schemas/verbs/task.claim.res.json`). Server-owned claim/lease
+  acquisition and renewal via `operation_id` + `if_match`. Writes an
+  `assigned` event, sets `claim_holder_id` and `claim_expires_at`, and
+  fails closed on active competing claim.
+- Task resource expansion: optional `claim_holder_id` and
+  `claim_expires_at` fields on `schemas/resources/task.json`.
+- Eight conformance fixtures covering the current `task.list`/`task.claim`
+  queue flow:
+  - `task-create-queue-page-happy` — creates a queue page for the
+    current task list.
+  - `task-claim-queue-anchor-happy` — seeds the queue page with a leased
+    anchor task.
+  - `task-list-claimable` — deterministic queue scan of claimable tasks.
+  - `task-claim-happy` — successful claim/lease acquisition.
+  - `task-claim-renewal-happy` — successful lease renewal.
+  - `task-claim-operation-replay` — repeated `operation_id` returns the same
+    response without a new event.
+  - `task-claim-version-conflict` — stale `if_match` fails with
+    `version_mismatch` before claim processing.
+  - `task-claim-active-conflict` — active competing claim returns 409
+    `claim_conflict` and the current task body.
+
+### Error codes
+| Code | HTTP | Meaning |
+|---|---|---|
+| `claim_conflict` | 409 | Another actor already holds an active claim lease for the task. |
+
+### Conformance notes
+- Implementations claiming v0.1.6 conformance MUST implement
+  `task.list` and `task.claim`.
+- Implementations NOT implementing those verbs remain Tessera v0.1.5
+  conformant and SHOULD NOT claim v0.1.6.
+
+### Upgrade notes (v0.1.5 → v0.1.6)
+- Add a queue-scan endpoint that accepts `{project_id, status?,
+  claimable_only?, cursor?, limit?}` and returns `{tasks, next_cursor}`.
+- Add a claim/lease endpoint that accepts `{operation_id, task_id,
+  if_match}` and returns the updated task plus an `assigned` event.
+- Materialize `claim_holder_id` and `claim_expires_at` on the task
+  resource; keep the lease server-owned and explicit.
+- Return 409 `claim_conflict` when another worker already holds an
+  active claim, with the server's current task body in the error
+  envelope.
+- Pass all eight current `task.list`/`task.claim` conformance fixtures.
+
+---
+
 ## [v0.1.5] — 2026-05-06 — Project creation verb
 
 **Status: additive. No breaking changes; the v0.1.0 schema lock holds.**
@@ -306,6 +363,7 @@ zero changes.
 ---
 
 [v0.1.5]: https://github.com/leotorrealba/tessera/compare/v0.1.4...v0.1.5
+[v0.1.6]: https://github.com/leotorrealba/tessera/compare/v0.1.5...v0.1.6
 [v0.1.4]: https://github.com/leotorrealba/tessera/compare/v0.1.3...v0.1.4
 [v0.1.3]: https://github.com/leotorrealba/tessera/compare/v0.1.2...v0.1.3
 [v0.1.2]: https://github.com/leotorrealba/tessera/compare/v0.1.1...v0.1.2

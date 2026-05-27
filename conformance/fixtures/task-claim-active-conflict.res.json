@@ -1,0 +1,30 @@
+{
+  "_meta": {
+    "preconditions": "task-claim-renewal-happy and task-claim-operation-replay already executed in this test session, so task 018c3e7a-0003-7000-8000-0000000000ff is actively leased by the seeded Maintainer human actor at version 7. The caller for this fixture is the seeded alternate claimant actor via `_auth.actor_id`, trying to claim the same task while the lease is still active.",
+    "expected_behavior": "Active competing claim must fail closed at the fixed conformance clock. The request uses the current task version, so version_mismatch cannot mask claim_conflict. Implementation MUST return 409 Conflict with the server's current task body so the client can re-scan the queue instead of assuming ownership."
+  },
+  "_error": {
+    "status": 409,
+    "code": "claim_conflict",
+    "details": {
+      "task_id": "018c3e7a-0003-7000-8000-0000000000ff",
+      "holder_id": "018c3e7a-0001-7000-8000-000000000001",
+      "claim_expires_at": "2026-04-27T16:05:00Z",
+      "reason": "Task already has an active claim lease."
+    },
+    "current_task": {
+      "id": "018c3e7a-0003-7000-8000-0000000000ff",
+      "project_id": "018c3e7a-0002-7000-8000-000000000001",
+      "title": "Long-running task with extensive agent context",
+      "description": "Used for the truncation conformance fixture.",
+      "status": "doing",
+      "assignee_id": null,
+      "claim_holder_id": "018c3e7a-0001-7000-8000-000000000001",
+      "claim_expires_at": "2026-04-27T16:05:00Z",
+      "created_by": "018c3e7a-0001-7000-8000-000000000001",
+      "version": 7,
+      "created_at": "2026-04-27T10:00:00Z",
+      "updated_at": "2026-04-27T15:20:00Z"
+    }
+  }
+}

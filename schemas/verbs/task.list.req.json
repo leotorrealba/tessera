@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/task.list.req.json",
+  "title": "task.list — Request",
+  "description": "Deterministically scan a project's task queue. Claimable tasks are returned first, then actively leased tasks. Within the claimable bucket, sort by created_at ascending and id ascending. Within the leased bucket, sort by claim_expires_at ascending, then created_at ascending, then id ascending. Cursor-based pagination preserves that total order.",
+  "type": "object",
+  "required": ["project_id"],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Project whose queue should be scanned."
+    },
+    "status": {
+      "type": "array",
+      "items": {
+        "enum": ["todo", "doing", "done", "blocked"]
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Optional status filter. When omitted, implementations SHOULD default to the queueable states they surface for claim/lease scanning."
+    },
+    "claimable_only": {
+      "type": "boolean",
+      "default": true,
+      "description": "When true, return only tasks whose claim lease is absent or expired. When false, leased tasks may also appear after claimable tasks using the same total order."
+    },
+    "cursor": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque pagination cursor returned by a prior task.list response. The cursor encodes the claimable-first ordering opaquely."
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100,
+      "description": "Maximum number of tasks to return in this page."
+    }
+  },
+  "additionalProperties": false
+}

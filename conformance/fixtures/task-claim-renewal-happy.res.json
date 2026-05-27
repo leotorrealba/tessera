@@ -1,0 +1,33 @@
+{
+  "_meta": {
+    "preconditions": "task-claim-happy already executed in this test session, so task 018c3e7a-0003-7000-8000-0000000000ff exists at version 6 and is actively leased by the seeded Maintainer human actor.",
+    "expected_behavior": "Renew the existing claim lease in place at the fixed conformance clock. Implementation MUST keep claim_holder_id on the same actor, extend claim_expires_at from the current active expiry by the deterministic 30-minute lease window, write a new assigned event with `payload.claim_expires_at` present, and increment task.version. This event updates only claim lease fields, not assignee_id."
+  },
+  "task": {
+    "id": "018c3e7a-0003-7000-8000-0000000000ff",
+    "project_id": "018c3e7a-0002-7000-8000-000000000001",
+    "title": "Long-running task with extensive agent context",
+    "description": "Used for the truncation conformance fixture.",
+    "status": "doing",
+    "assignee_id": null,
+    "claim_holder_id": "018c3e7a-0001-7000-8000-000000000001",
+    "claim_expires_at": "2026-04-27T16:05:00Z",
+    "created_by": "018c3e7a-0001-7000-8000-000000000001",
+    "version": 7,
+    "created_at": "2026-04-27T10:00:00Z",
+    "updated_at": "2026-04-27T15:20:00Z"
+  },
+  "event": {
+    "id": "018c3e7a-0004-7000-8000-000000000012",
+    "task_id": "018c3e7a-0003-7000-8000-0000000000ff",
+    "actor_id": "018c3e7a-0001-7000-8000-000000000001",
+    "kind": "assigned",
+    "payload": {
+      "from": "018c3e7a-0001-7000-8000-000000000001",
+      "to": "018c3e7a-0001-7000-8000-000000000001",
+      "claim_expires_at": "2026-04-27T16:05:00Z"
+    },
+    "operation_id": "018c3e7a-0005-7000-8000-000000000015",
+    "created_at": "2026-04-27T15:20:00Z"
+  }
+}

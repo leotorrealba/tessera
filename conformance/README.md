@@ -2,7 +2,7 @@
 
 This directory holds paired request/response fixtures that any Tessera
 implementation MUST pass to claim Tessera support. The pinned target
-version is in [`SPEC.md`](../SPEC.md) (currently v0.1.3).
+version is in [`SPEC.md`](../SPEC.md) (currently v0.1.6).
 
 ## Layout
 
@@ -12,9 +12,21 @@ conformance/
     # Happy path — read & write narrative
     ├── project-list-happy.{req,res}.json
     ├── project-get-by-repo-path-happy.{req,res}.json
+    ├── project-create-happy.{req,res}.json
+    ├── project-create-operation-replay.{req,res}.json
+    ├── project-create-slug-conflict.{req,res}.json
+    ├── project-create-validation-error.{req,res}.json
     ├── task-create-happy.{req,res}.json
     ├── task-get-happy.{req,res}.json
     ├── task-update-status-happy.{req,res}.json
+    ├── task-create-queue-page-happy.{req,res}.json
+    ├── task-claim-queue-anchor-happy.{req,res}.json
+    ├── task-list-claimable.{req,res}.json
+    ├── task-claim-happy.{req,res}.json
+    ├── task-claim-renewal-happy.{req,res}.json
+    ├── task-claim-operation-replay.{req,res}.json
+    ├── task-claim-version-conflict.{req,res}.json
+    ├── task-claim-active-conflict.{req,res}.json
     # Idempotency
     ├── task-create-operation-replay.{req,res}.json     # same op_id, same payload → same response
     ├── task-create-operation-conflict.{req,res}.json   # same op_id, different payload → 409
@@ -64,7 +76,7 @@ A `*.res.json` for an error case wraps the expected error in a top-level
 {
   "_error": {
     "status": 400 | 409 | 410,
-    "code": "invalid_request" | "version_conflict" | "operation_payload_mismatch" | ...,
+    "code": "invalid_request" | "version_mismatch" | "operation_payload_mismatch" | ...,
     "details": { /* implementation-defined diagnostic fields */ }
   }
 }
@@ -82,13 +94,58 @@ top level. It documents preconditions and expected behavior in human
 terms. The harness MUST ignore `_meta` when validating shape — it is
 documentation, not protocol.
 
+### `_auth` field
+
+Request fixtures MAY include a top-level `_auth` object. The harness
+MUST use `_auth` as the execution context for the request and MUST
+ignore `_auth` when validating the verb body against JSON Schema. The
+minimal supported shape is:
+
+```json
+{
+  "_auth": {
+    "actor_id": "018c3e7a-0001-7000-8000-000000000001"
+  }
+}
+```
+
+For the claim fixtures, the seeded Maintainer actor is used for the
+happy/renew/replay/queue-anchor requests, and the seeded alternate
+claimant actor is used for the version-conflict/active-conflict
+requests.
+
+### `_clock` field
+
+Request fixtures MAY include a top-level `_clock` object. The supported
+shape is:
+
+```json
+{
+  "_clock": {
+    "now": "2026-04-27T15:05:00Z"
+  }
+}
+```
+
+The harness MUST execute time-sensitive fixtures at `_clock.now` and
+MUST ignore `_clock` when validating the verb body against JSON Schema.
+For the task claim/list fixtures, active leases are evaluated relative
+to the fixture clock, not the host wall clock or the release date.
+These fixtures use a deterministic 30-minute lease window so the
+expected `claim_expires_at` values are exact.
+For `task.claim` renewals, the new expiry extends from the current
+active `claim_expires_at`, not from `_clock.now`.
+
 ## How to use them
 
 1. **Seed your implementation's database** with the actor and projects
    the fixtures reference:
    - Actor: `018c3e7a-0001-7000-8000-000000000001` (kind=`human`)
+   - Actor: `018c3e7a-0001-7000-8000-000000000002` (kind=`human`, alternate claimant for competing `task.claim` fixtures)
    - Project: `018c3e7a-0002-7000-8000-000000000001` (`sprino`)
    - Project: `018c3e7a-0002-7000-8000-000000000002` (`tessera`)
+   - Lease-sensitive fixtures are clocked through `_clock.now`; do not
+     infer active-lease status from the machine's wall clock.
 
 2. **Run fixtures in dependency order.** Some fixtures depend on prior
    state (see `_meta.preconditions` in each `*.res.json`). The canonical
@@ -97,6 +154,10 @@ documentation, not protocol.
    ```
    project-list-happy
    project-get-by-repo-path-happy
+   project-create-happy
+   project-create-operation-replay
+   project-create-slug-conflict
+   project-create-validation-error
    task-create-happy                          # creates v1 of task ...0001
    task-get-happy                             # reads v1
    task-create-operation-replay               # same op_id → same response, no new event
@@ -105,9 +166,15 @@ documentation, not protocol.
    task-create-missing-required-field         # 400, no state change
    task-update-status-happy                   # v1 → v2
    task-update-status-version-conflict        # if_match=1 against v2 → 409
-
-   # Independent narrative — separate task with large agent_context
    task-get-truncated                         # truncated:true + next_page_tokens
+   task-claim-happy                           # claims task ...00ff at version 5
+   task-claim-renewal-happy                   # renews task ...00ff lease
+   task-claim-operation-replay                # same op_id → same response, no new event
+   task-claim-version-conflict                # stale if_match → version_mismatch before claim_conflict
+   task-claim-active-conflict                 # same version, competing holder hits 409 claim_conflict
+   task-create-queue-page-happy               # extra claimable task for queue pagination
+   task-claim-queue-anchor-happy              # leases task ...0001 so the queue page mixes claimable + leased
+   task-list-claimable                        # mixed queue scan; claimable first, then leased by claim_expires_at asc
 
    # Actor lifecycle baseline
    actor-register-happy
@@ -141,7 +208,8 @@ documentation, not protocol.
      dependent requests, so implementations that generate task ids
      server-side MUST do so deterministically for the conformance
      inputs — i.e. `task-create-happy` MUST return the fixture-matching
-     id used by subsequent `task-get-*` and `task-update-*` requests.
+     id used by subsequent `task-get-*`, `task-list-*`, `task-claim-*`,
+     and `task-update-*` requests.
    - **For `task-get-truncated`**: `agent_context.related_tasks`,
      `recent_events`, `repo_refs` content is implementation-dependent in
      volume. The corresponding collection MAY be empty even if a
@@ -172,7 +240,7 @@ An implementation passes the pinned Tessera v0.1.x target if:
 - `events.list` replay verb (event-sourced rebuild).
 - Operation expiry (after 30 days → 410 Gone). Long-running scenario,
   not easily expressible in a sub-second test fixture.
-- Project mutation verbs (`project.create`, `project.update`).
+- Project mutation verbs (`project.update`).
 - `actor_events` audit log (deferred to v0.2).
 - `last_admin_protected` system-precondition fixture for
   `actor.revoke_token` — this is enforced by spec text in v0.1.3 but

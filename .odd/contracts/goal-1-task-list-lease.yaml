@@ -1,0 +1,83 @@
+goal_id: "1"
+goal: "Publish task queue scanning and claim lease protocol for Kiln"
+type: development
+owner: goal-tracker
+provider: github
+success_criteria:
+  - "Tessera documents task.list as the deterministic queue scanning verb."
+  - "Tessera documents a claim/lease verb that safely prevents two workers from owning the same active task."
+  - "Protocol schemas and conformance fixtures cover task.list and claim/lease happy path plus active-claim conflict."
+  - "Conformance fixtures make claim auth and clock context machine-readable via _auth and _clock."
+  - "Claim lease assigned events are replay-safe and distinguish claim fields from ordinary assignment."
+  - "GOALS.md and STATUS.md reflect the new active goal and resulting state."
+files_in_scope:
+  - "GOALS.md"
+  - "STATUS.md"
+  - "SPEC.md"
+  - "TECHNICAL.md"
+  - "README.md"
+  - "CHANGELOG.md"
+  - "conformance/README.md"
+  - "conformance/fixtures/*.json"
+  - "schemas/resources/task.json"
+  - "schemas/verbs/task.list.req.json"
+  - "schemas/verbs/task.list.res.json"
+  - "schemas/verbs/task.claim.req.json"
+  - "schemas/verbs/task.claim.res.json"
+tests:
+  - command: "python3 -m json.tool schemas/resources/task.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool schemas/verbs/task.list.req.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool schemas/verbs/task.list.res.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool schemas/verbs/task.claim.req.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool schemas/verbs/task.claim.res.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool conformance/fixtures/task-list-claimable.req.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool conformance/fixtures/task-list-claimable.res.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool conformance/fixtures/task-claim-happy.req.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool conformance/fixtures/task-claim-happy.res.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool conformance/fixtures/task-claim-renewal-happy.req.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool conformance/fixtures/task-claim-renewal-happy.res.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool conformance/fixtures/task-claim-operation-replay.req.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool conformance/fixtures/task-claim-operation-replay.res.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool conformance/fixtures/task-claim-active-conflict.req.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool conformance/fixtures/task-claim-active-conflict.res.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool conformance/fixtures/task-claim-version-conflict.req.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool conformance/fixtures/task-claim-version-conflict.res.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool conformance/fixtures/task-create-queue-page-happy.req.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool conformance/fixtures/task-create-queue-page-happy.res.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool conformance/fixtures/task-claim-queue-anchor-happy.req.json >/dev/null"
+    required: true
+  - command: "python3 -m json.tool conformance/fixtures/task-claim-queue-anchor-happy.res.json >/dev/null"
+    required: true
+  - command: "find schemas conformance/fixtures -name '*.json' -print0 | xargs -0 -n1 python3 -m json.tool >/dev/null"
+    required: true
+  - command: "git diff --check"
+    required: true
+gates:
+  odd: required
+  lgtm: required
+  adversary_review: required
+  retrospect: required
+evidence:
+  subagents: ".odd/evidence/goal-1-task-list-lease/subagents.md"
+  lgtm: ".odd/evidence/goal-1-task-list-lease/lgtm.md"
+  adversary_review: ".odd/evidence/goal-1-task-list-lease/adversary-review.md"
+  retrospect: ".odd/evidence/goal-1-task-list-lease/retrospect.md"

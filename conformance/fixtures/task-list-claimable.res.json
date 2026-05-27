@@ -1,0 +1,37 @@
+{
+  "_meta": {
+    "preconditions": "task-create-queue-page-happy and task-claim-queue-anchor-happy already executed in this test session. task-claim-happy and task-claim-renewal-happy have also executed, so task 018c3e7a-0003-7000-8000-0000000000ff is actively leased until 2026-04-27T16:05:00Z and task 018c3e7a-0003-7000-8000-000000000001 is actively leased until 2026-04-27T16:15:00Z. The fixture request clock is `_clock.now = 2026-04-27T15:50:00Z`, so both leases are still active when task.list evaluates the queue.",
+    "expected_behavior": "Deterministic queue scan at the fixed conformance clock: return the claimable slice first, then leased tasks ordered by claim_expires_at ascending, created_at ascending, and id ascending. With limit 2, this page must surface task 018c3e7a-0003-7000-8000-000000000002 first and task 018c3e7a-0003-7000-8000-0000000000ff second because 00ff's lease expires before 0001's. Paginate with a non-null opaque next_cursor because the queue continues beyond this page."
+  },
+  "tasks": [
+    {
+      "id": "018c3e7a-0003-7000-8000-000000000002",
+      "project_id": "018c3e7a-0002-7000-8000-000000000001",
+      "title": "Add second queue page task",
+      "description": "Second claimable task used to force cursor pagination on task.list",
+      "status": "todo",
+      "assignee_id": null,
+      "claim_holder_id": null,
+      "claim_expires_at": null,
+      "created_by": "018c3e7a-0001-7000-8000-000000000001",
+      "version": 1,
+      "created_at": "2026-04-27T14:00:00Z",
+      "updated_at": "2026-04-27T14:00:00Z"
+    },
+    {
+      "id": "018c3e7a-0003-7000-8000-0000000000ff",
+      "project_id": "018c3e7a-0002-7000-8000-000000000001",
+      "title": "Long-running task with extensive agent context",
+      "description": "Used for the truncation conformance fixture.",
+      "status": "doing",
+      "assignee_id": null,
+      "claim_holder_id": "018c3e7a-0001-7000-8000-000000000001",
+      "claim_expires_at": "2026-04-27T16:05:00Z",
+      "created_by": "018c3e7a-0001-7000-8000-000000000001",
+      "version": 7,
+      "created_at": "2026-04-27T10:00:00Z",
+      "updated_at": "2026-04-27T15:20:00Z"
+    }
+  ],
+  "next_cursor": "task-list-cursor-2"
+}

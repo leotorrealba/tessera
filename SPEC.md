@@ -1,11 +1,11 @@
-# Tessera v0.1.4
+# Tessera v0.1.6
 
-**Status:** v0.1.4 — additive release. The v0.1.0 schema lock holds; v0.1.4 adds the `attachment` resource and four attachment verbs (`attachment.create_upload`, `attachment.finalize`, `attachment.get`, `attachment.list`) without modifying any v0.1.0–v0.1.3 schema incompatibly. Additive changes (new optional fields, new verbs, new resources) remain permitted in v0.1.x; breaking changes require a v0.2.0 bump and a migration guide. Implementations should pin to a specific v0.1.x and follow [`CHANGELOG.md`](./CHANGELOG.md).
+**Status:** v0.1.6 — additive release. The v0.1.0 schema lock holds; v0.1.6 adds the task queue scanning and claim/lease protocol (`task.list`, `task.claim`) while keeping the existing v0.1.0–v0.1.5 surface additive and compatible. Additive changes (new optional fields, new verbs, new resources) remain permitted in v0.1.x; breaking changes require a v0.2.0 bump and a migration guide. Implementations should pin to a specific v0.1.x and follow [`CHANGELOG.md`](./CHANGELOG.md).
 
 ## TL;DR for implementers
 
 1. Install your DB schema for the five core resources (`actor`, `project`, `task`, `event`, `operation`) and the `attachment` resource added in v0.1.4. Support the companion `AgentContext` response schema. The shapes are defined in [`schemas/resources/`](./schemas/resources/).
-2. Implement the pinned v0.1.x verb set you claim to support. For `v0.1.5`, the full surface is `project.create`, `project.list`, `project.get`, `task.create`, `task.get`, `task.update_status`, `actor.register`, `actor.list`, `actor.get`, `actor.revoke_token`, `actor.heartbeat`, `actor.deactivate`, `attachment.create_upload`, `attachment.finalize`, `attachment.get`, and `attachment.list`. Request/response shapes are in [`schemas/verbs/`](./schemas/verbs/).
+2. Implement the pinned v0.1.x verb set you claim to support. For `v0.1.6`, the full surface is `project.create`, `project.list`, `project.get`, `task.create`, `task.get`, `task.update_status`, `task.list`, `task.claim`, `actor.register`, `actor.list`, `actor.get`, `actor.revoke_token`, `actor.heartbeat`, `actor.deactivate`, `attachment.create_upload`, `attachment.finalize`, `attachment.get`, and `attachment.list`. Request/response shapes are in [`schemas/verbs/`](./schemas/verbs/).
 3. Make your implementation pass [`conformance/fixtures/`](./conformance/fixtures/). The fixtures form coherent project/task, actor-lifecycle, and attachment narratives.
 
 ## Core resources
@@ -16,13 +16,13 @@ Six core resources plus one companion schema. All schemas use JSON Schema 2020-1
 | --- | --- | --- |
 | **Actor** | [`schemas/resources/actor.json`](./schemas/resources/actor.json) | Humans and agents as first-class participants. `kind` discriminates at the schema level — agents are NOT users-with-a-flag. |
 | **Project** | [`schemas/resources/project.json`](./schemas/resources/project.json) | Scope boundary. Tasks live in projects. |
-| **Task** | [`schemas/resources/task.json`](./schemas/resources/task.json) | Unit of work. `status` is a materialized projection of the latest `status_changed` event. |
+| **Task** | [`schemas/resources/task.json`](./schemas/resources/task.json) | Unit of work. `status` plus claim lease fields are materialized projections of the latest `status_changed` events and `assigned` events; claim-lease `assigned` events are distinguished by `payload.claim_expires_at`. |
 | **Event** | [`schemas/resources/event.json`](./schemas/resources/event.json) | Append-only authoritative state changes. Source of truth. MUST NOT be mutated or deleted. |
 | **Operation** | [`schemas/resources/operation.json`](./schemas/resources/operation.json) | Server-side idempotency dedup record. 30-day minimum retention. |
 | **Attachment** (v0.1.4) | [`schemas/resources/attachment.json`](./schemas/resources/attachment.json) | File attached to a task. Two-phase lifecycle: `pending` (slot reserved) → `ready` (binary confirmed). |
 | **AgentContext** | [`schemas/resources/agent-context.json`](./schemas/resources/agent-context.json) | Structured response field on `task.create` and `task.get`. Caps at 32KB; over-cap responses set `truncated:true` with `next_page_tokens`. |
 
-## Verbs (v0.1.4 surface)
+## Verbs (v0.1.6 surface)
 
 | Verb | Request | Response | Idempotent? |
 | --- | --- | --- | --- |
@@ -32,6 +32,8 @@ Six core resources plus one companion schema. All schemas use JSON Schema 2020-1
 | `task.create` | [req](./schemas/verbs/task.create.req.json) | [res](./schemas/verbs/task.create.res.json) | Yes (operation_id) |
 | `task.get` | [req](./schemas/verbs/task.get.req.json) | [res](./schemas/verbs/task.get.res.json) | N/A (read-only) |
 | `task.update_status` | [req](./schemas/verbs/task.update_status.req.json) | [res](./schemas/verbs/task.update_status.res.json) | Yes (operation_id) + concurrency-safe (if_match) |
+| `task.list` (v0.1.6) | [req](./schemas/verbs/task.list.req.json) | [res](./schemas/verbs/task.list.res.json) | N/A (read-only) + cursor-paginated queue scan |
+| `task.claim` (v0.1.6) | [req](./schemas/verbs/task.claim.req.json) | [res](./schemas/verbs/task.claim.res.json) | Yes (operation_id) + concurrency-safe (if_match) |
 | `actor.register` (v0.1.3) | [req](./schemas/verbs/actor.register.req.json) | [res](./schemas/verbs/actor.register.res.json) | Yes (operation_id); replay redacts `token` |
 | `actor.list` (v0.1.2) | [req](./schemas/verbs/actor.list.req.json) | [res](./schemas/verbs/actor.list.res.json) | N/A (read-only) |
 | `actor.get` (v0.1.2) | [req](./schemas/verbs/actor.get.req.json) | [res](./schemas/verbs/actor.get.res.json) | N/A (read-only) |
@@ -75,6 +77,16 @@ Attachment authorization derives from the task's project scope: actors authorize
 
 The `upload_url` returned by `attachment.create_upload` is valid for a single upload attempt. Implementations MAY set an expiry on presigned URLs; clients SHOULD call `attachment.create_upload` again if the upload slot has expired.
 
+## Task queue scanning and claim leases (v0.1.6)
+
+`task.list` is the deterministic queue-scanning verb. It accepts a project scope plus optional filters, returns a stable cursor-paginated page, and uses one normative total order: claimable tasks first, then actively leased tasks. Within the claimable bucket, sort by `created_at` ascending, then `id` ascending. Within the leased bucket, sort by `claim_expires_at` ascending, then `created_at` ascending, then `id` ascending. Cursors are opaque and MUST preserve that ordering across pages. The `claimable_only` filter lets callers restrict the result set to tasks with no active claim lease. Conformance fixtures evaluate active leases against a fixed test clock, not the host wall clock.
+
+`task.claim` acquires or renews a server-owned claim lease on a task. The server, not the client, sets `claim_holder_id` and `claim_expires_at`. On renewal, the new expiry extends from the current active `claim_expires_at`, not from `_clock.now`. Validation precedence is normative: first operation-cache lookup and same-payload replay, then operation-cache payload mismatch, then request/schema validity for fresh requests, then task lookup and `if_match` version comparison, then active competing claim conflict. A same `operation_id` replay MUST be returned before any `if_match` evaluation, even if the task's version has advanced. Claim leases are concurrency-safe via `if_match` and idempotent via `operation_id`. For conformance, the fixture harness runs the claim/list scenarios against a fixed test clock and a deterministic 30-minute lease window so `claim_expires_at` values are reproducible.
+
+Claim leases are represented with the existing `assigned` event kind so the v0.x event taxonomy stays fixed. The replay-safe distinction is in the payload: a normal assignment event uses `assigned` without `claim_expires_at` and projects to `assignee_id`, while a claim-lease event uses `assigned` with `payload.claim_expires_at` present and projects only to `claim_holder_id` and `claim_expires_at`. The event payload's `to` field carries the actor for the transition.
+
+If a task already has an active competing claim, `task.claim` MUST fail closed with HTTP 409-style semantics and the protocol error code `claim_conflict`, returning the server's current task body so the caller can re-scan the queue.
+
 ## Idempotency rules (`operation_id`)
 
 - **Format:** UUIDv7 supplied by the client. Implementations MUST NOT generate operation_ids server-side.
@@ -87,7 +99,7 @@ The `upload_url` returned by `attachment.create_upload` is valid for a single up
 ## Optimistic concurrency (`version`)
 
 - `if_match: <version>` applies only to verbs that mutate an existing versioned task record.
-- In the pinned v0.1.3 contract, that means `task.update_status`. It does not apply to `actor.register`, `actor.heartbeat`, or `actor.deactivate`.
+- In the pinned v0.1.6 contract, that means `task.update_status` and `task.claim`. It does not apply to `actor.register`, `actor.heartbeat`, or `actor.deactivate`.
 - On match: server writes the event, increments the version, returns the new task and event with status `200 OK`.
 - On mismatch: server returns `409 Conflict` with the SERVER'S current task body (no new event written, no version increment).
 - Reasoning: AI agents tend not to pause to check state. Last-write-wins is a footgun.
@@ -96,7 +108,7 @@ The `upload_url` returned by `attachment.create_upload` is valid for a single up
 
 - Events are append-only and authoritative.
 - Mutating operations write the event BEFORE updating materialized state, in the same transaction.
-- Materialized state (`tasks.status`, `tasks.assignee_id`) is recomputable by replaying events in `created_at` order. Implementations MAY keep mutable rows for read performance, but events remain the source of truth.
+- Materialized state (`tasks.status`, `tasks.assignee_id`, `tasks.claim_holder_id`, `tasks.claim_expires_at`) is recomputable by replaying events in `created_at` order. Normal `assigned` events project to `tasks.assignee_id`; claim-lease `assigned` events project to `tasks.claim_holder_id` and `tasks.claim_expires_at`. Implementations MAY keep mutable rows for read performance, but events remain the source of truth.
 - Implementations MAY expose a future `events.list` verb (out of scope for v0.0.2) that lets agents query event history without polling.
 
 ## Transport-agnostic
@@ -129,10 +141,12 @@ An implementation is **Tessera v0.1.x conformant** when:
 
 2. **All verbs for the pinned v0.1.x target are implemented** with the
    request/response shapes in [`schemas/verbs/`](./schemas/verbs/). For
-   `v0.1.3`, that means `project.list`, `project.get`, `task.create`,
-   `task.get`, `task.update_status`, `actor.register`, `actor.list`,
-   `actor.get`, `actor.revoke_token`, `actor.heartbeat`, and
-   `actor.deactivate`.
+   `v0.1.6`, that means `project.list`, `project.get`, `project.create`,
+   `task.create`, `task.get`, `task.update_status`, `task.list`,
+   `task.claim`, `actor.register`, `actor.list`, `actor.get`,
+   `actor.revoke_token`, `actor.heartbeat`, `actor.deactivate`,
+   `attachment.create_upload`, `attachment.finalize`, `attachment.get`,
+   and `attachment.list`.
 
 3. **Idempotency, concurrency, and event-log rules** from this document
    are enforced (operation replay, 409 on `operation_id` payload

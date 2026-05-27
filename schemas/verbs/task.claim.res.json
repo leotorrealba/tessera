@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/task.claim.res.json",
+  "title": "task.claim — Response",
+  "description": "200 OK on success: returns the updated task with claim_holder_id and claim_expires_at set, plus the assigned event written for the claim lease. 409 Conflict on version_mismatch or active competing claim: response body in the 409 case returns the SERVER'S current task body. 410 Gone if operation_id is past retention. Operation-cache replay happens before if_match validation, so a stale-version replay still returns the cached response.",
+  "type": "object",
+  "required": ["task", "event"],
+  "properties": {
+    "task": {
+      "$ref": "../resources/task.json"
+    },
+    "event": {
+      "$ref": "../resources/event.json",
+      "description": "The assigned event written for this claim lease."
+    }
+  },
+  "additionalProperties": false
+}
