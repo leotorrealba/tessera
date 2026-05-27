@@ -1,0 +1,29 @@
+{
+  "_meta": {
+    "preconditions": "task-claim-renewal-happy already executed in this test session, so task 018c3e7a-0003-7000-8000-0000000000ff exists at version 7 and is actively leased by the seeded Maintainer human actor. The caller for this fixture is the seeded alternate claimant actor via `_auth.actor_id`, and the request deliberately uses stale if_match=6.",
+    "expected_behavior": "Stale if_match must fail with version_mismatch before any active-claim conflict is considered, even though the lease is still active at the fixed conformance clock. Implementation MUST return 409 Conflict with the server's current task body so the client can retry with the correct version."
+  },
+  "_error": {
+    "status": 409,
+    "code": "version_mismatch",
+    "details": {
+      "task_id": "018c3e7a-0003-7000-8000-0000000000ff",
+      "expected_version": 6,
+      "actual_version": 7
+    },
+    "current_task": {
+      "id": "018c3e7a-0003-7000-8000-0000000000ff",
+      "project_id": "018c3e7a-0002-7000-8000-000000000001",
+      "title": "Long-running task with extensive agent context",
+      "description": "Used for the truncation conformance fixture.",
+      "status": "doing",
+      "assignee_id": null,
+      "claim_holder_id": "018c3e7a-0001-7000-8000-000000000001",
+      "claim_expires_at": "2026-04-27T16:05:00Z",
+      "created_by": "018c3e7a-0001-7000-8000-000000000001",
+      "version": 7,
+      "created_at": "2026-04-27T10:00:00Z",
+      "updated_at": "2026-04-27T15:20:00Z"
+    }
+  }
+}

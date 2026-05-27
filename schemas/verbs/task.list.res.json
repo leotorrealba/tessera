@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/task.list.res.json",
+  "title": "task.list — Response",
+  "description": "Returns a deterministic, cursor-paginated queue page. Claimable tasks appear first, sorted by created_at ascending then id ascending. Leased tasks follow, sorted by claim_expires_at ascending, then created_at ascending, then id ascending. Cursors are opaque and preserve that ordering.",
+  "type": "object",
+  "required": ["tasks", "next_cursor"],
+  "properties": {
+    "tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "../resources/task.json"
+      },
+      "description": "Tasks returned by the queue scan in deterministic order."
+    },
+    "next_cursor": {
+      "type": ["string", "null"],
+      "description": "Opaque cursor for the next page, or null when the result set is exhausted."
+    }
+  },
+  "additionalProperties": false
+}

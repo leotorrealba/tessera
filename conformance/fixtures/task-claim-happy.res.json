@@ -1,0 +1,33 @@
+{
+  "_meta": {
+    "preconditions": "task-get-truncated already executed in this test session, so task 018c3e7a-0003-7000-8000-0000000000ff exists at version 5. The caller is the seeded Maintainer human actor.",
+    "expected_behavior": "First claim of an unleased task at the fixed conformance clock. Implementation MUST write an assigned event with `payload.claim_expires_at` present, set claim_holder_id to the authenticated actor, compute a server-owned claim_expires_at from the deterministic 30-minute lease window, and increment task.version. This event updates only claim lease fields, not assignee_id."
+  },
+  "task": {
+    "id": "018c3e7a-0003-7000-8000-0000000000ff",
+    "project_id": "018c3e7a-0002-7000-8000-000000000001",
+    "title": "Long-running task with extensive agent context",
+    "description": "Used for the truncation conformance fixture.",
+    "status": "doing",
+    "assignee_id": null,
+    "claim_holder_id": "018c3e7a-0001-7000-8000-000000000001",
+    "claim_expires_at": "2026-04-27T15:35:00Z",
+    "created_by": "018c3e7a-0001-7000-8000-000000000001",
+    "version": 6,
+    "created_at": "2026-04-27T10:00:00Z",
+    "updated_at": "2026-04-27T15:05:00Z"
+  },
+  "event": {
+    "id": "018c3e7a-0004-7000-8000-000000000011",
+    "task_id": "018c3e7a-0003-7000-8000-0000000000ff",
+    "actor_id": "018c3e7a-0001-7000-8000-000000000001",
+    "kind": "assigned",
+    "payload": {
+      "from": null,
+      "to": "018c3e7a-0001-7000-8000-000000000001",
+      "claim_expires_at": "2026-04-27T15:35:00Z"
+    },
+    "operation_id": "018c3e7a-0005-7000-8000-000000000011",
+    "created_at": "2026-04-27T15:05:00Z"
+  }
+}

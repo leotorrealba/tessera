@@ -1,0 +1,9 @@
+{
+  "_clock": {
+    "now": "2026-04-27T15:50:00Z"
+  },
+  "project_id": "018c3e7a-0002-7000-8000-000000000001",
+  "status": ["todo", "doing"],
+  "claimable_only": false,
+  "limit": 2
+}

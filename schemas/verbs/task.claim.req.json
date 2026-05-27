@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/verbs/task.claim.req.json",
+  "title": "task.claim — Request",
+  "description": "Acquire or renew a server-owned claim lease on a task. Idempotent via operation_id and concurrency-safe via if_match. Validation precedence is normative: same-operation replay or payload mismatch is checked before request/schema validity; fresh requests then load the task, compare if_match against the current version, and only after that check for an active competing claim. The server determines the claim holder from the authenticated actor and sets the lease expiry itself.",
+  "type": "object",
+  "required": ["operation_id", "task_id", "if_match"],
+  "properties": {
+    "operation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUIDv7 (time-ordered). Same operation_id replays the cached response. Same operation_id with a different request body returns 409 Conflict."
+    },
+    "task_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Task to claim."
+    },
+    "if_match": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The client's known task version. If it does not match the server's current version, the server returns 409 Conflict with the server's current task body."
+    }
+  },
+  "additionalProperties": false
+}

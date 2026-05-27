@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/leotorrealba/tessera/schemas/v0.0.2/resources/task.json",
   "title": "Task",
-  "description": "A unit of work. Status is a materialized projection of the latest status_changed event for this task. Implementations MAY keep mutable rows for read performance, but the event log is the source of truth.",
+  "description": "A unit of work. Status and claim lease fields are materialized projections of the latest status_changed and assigned events for this task. Implementations MAY keep mutable rows for read performance, but the event log is the source of truth.",
   "type": "object",
   "required": ["id", "project_id", "title", "status", "created_by", "version", "created_at", "updated_at"],
   "properties": {
@@ -22,6 +22,16 @@
       "type": ["string", "null"],
       "format": "uuid",
       "description": "Reference to an actor (human or agent). NULL means unassigned."
+    },
+    "claim_holder_id": {
+      "type": ["string", "null"],
+      "format": "uuid",
+      "description": "Actor currently holding the server-owned claim lease. NULL means unclaimed."
+    },
+    "claim_expires_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "When the active claim lease expires. NULL means no active claim lease."
     },
     "parent_task_id": {
       "type": ["string", "null"],

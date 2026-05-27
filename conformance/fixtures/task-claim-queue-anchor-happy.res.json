@@ -1,0 +1,33 @@
+{
+  "_meta": {
+    "preconditions": "task-update-status-happy already executed in this test session, so task 018c3e7a-0003-7000-8000-000000000001 exists at version 2 and remains queueable. The caller is the seeded Maintainer human actor.",
+    "expected_behavior": "Claim the queue anchor task at the fixed conformance clock so task.list can return a page that mixes claimable and actively leased tasks while still leaving more queue items behind the cursor. Implementation MUST write an assigned event with `payload.claim_expires_at` present, update only claim lease fields, and land on the deterministic 30-minute lease window."
+  },
+  "task": {
+    "id": "018c3e7a-0003-7000-8000-000000000001",
+    "project_id": "018c3e7a-0002-7000-8000-000000000001",
+    "title": "Wire MCP server to Sprino backend",
+    "description": "Week 1 vertical slice: hello-task end-to-end loop",
+    "status": "doing",
+    "assignee_id": null,
+    "claim_holder_id": "018c3e7a-0001-7000-8000-000000000001",
+    "claim_expires_at": "2026-04-27T16:15:00Z",
+    "created_by": "018c3e7a-0001-7000-8000-000000000001",
+    "version": 3,
+    "created_at": "2026-04-27T12:45:00Z",
+    "updated_at": "2026-04-27T15:45:00Z"
+  },
+  "event": {
+    "id": "018c3e7a-0004-7000-8000-000000000004",
+    "task_id": "018c3e7a-0003-7000-8000-000000000001",
+    "actor_id": "018c3e7a-0001-7000-8000-000000000001",
+    "kind": "assigned",
+    "payload": {
+      "from": null,
+      "to": "018c3e7a-0001-7000-8000-000000000001",
+      "claim_expires_at": "2026-04-27T16:15:00Z"
+    },
+    "operation_id": "018c3e7a-0005-7000-8000-000000000014",
+    "created_at": "2026-04-27T15:45:00Z"
+  }
+}
